@@ -6,6 +6,7 @@ import { BoardRenderer } from '../rendering/BoardRenderer.js';
 import { PlayerRenderer } from '../rendering/PlayerRenderer.js';
 import { CompassOverlay } from '../rendering/CompassOverlay.js';
 import { ZoomIndicator } from '../rendering/ZoomIndicator.js';
+import { TiltIndicator } from '../rendering/TiltIndicator.js';
 import { Minimap } from '../rendering/Minimap.js';
 import { HUD } from '../ui/HUD.js';
 import { PauseMenu } from '../ui/PauseMenu.js';
@@ -26,6 +27,7 @@ export class GameScene {
     this.playerRenderer = new PlayerRenderer(this.scene);
     this.compass = new CompassOverlay();
     this.zoomIndicator = new ZoomIndicator();
+    this.tiltIndicator = new TiltIndicator();
     this.minimap = new Minimap();
     this.hud = new HUD(() => this.audioManager.toggleMute());
     this.levelComplete = null;
@@ -50,6 +52,7 @@ export class GameScene {
 
     // Init UI
     this.zoomIndicator.init(document.getElementById('ui-overlay'));
+    this.tiltIndicator.init(document.getElementById('ui-overlay'));
     this.compass.init(document.getElementById('ui-overlay'));
     this.pauseMenu = new PauseMenu({
       onResume: () => { this.inputHandler.enabled = true; this.hud.resumeTimer(); },
@@ -77,6 +80,7 @@ export class GameScene {
       onRotateRight: () => this._rotateCamera(1),
       onZoomIn: () => { this.isoCamera.zoomIn(); this.zoomIndicator.setZoom(this.isoCamera.getZoomPercent()); this.minimap.setZoom(this.isoCamera.getZoomPercent()); },
       onZoomOut: () => { this.isoCamera.zoomOut(); this.zoomIndicator.setZoom(this.isoCamera.getZoomPercent()); this.minimap.setZoom(this.isoCamera.getZoomPercent()); },
+      onTilt: () => { this.isoCamera.tiltStep(); this.tiltIndicator.setTilt(this.isoCamera.getTiltDeg()); },
       onToggleMute: () => this.audioManager.toggleMute(),
       onPause: () => this._togglePause(),
     });
@@ -94,6 +98,8 @@ export class GameScene {
     if (this.levelComplete) this.levelComplete.hide();
     const zi = document.getElementById('zoom-indicator');
     if (zi) zi.remove();
+    const ti = document.getElementById('tilt-indicator');
+    if (ti) ti.remove();
     const cp = document.getElementById('compass');
     if (cp) cp.remove();
   }
@@ -217,7 +223,7 @@ export class GameScene {
     this.boardRenderer.updateOcclusion(this.board.playerPos, this.isoCamera.getCamera());
     this.boardRenderer.updateOcclusionTween(dt);
     this.boardRenderer.updateTargetPulse(performance.now() / 1000);
-    this.compass.setRotation(this.isoCamera.getRotationAngle());
+    this.compass.setRotation(this.isoCamera.getRotationAngle(), this.isoCamera.getTiltDeg());
     this.minimap.setRotation(this.isoCamera.getRotationAngle());
     this.hud.update(this.stateManager.getMoveCount(), this.stateManager.getPushCount());
   }

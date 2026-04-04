@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BOARD_PADDING, CAMERA_ROTATION_DURATION, ZOOM_MIN, ZOOM_MAX, ZOOM_STEP } from '../config.js';
+import { BOARD_PADDING, CAMERA_ROTATION_DURATION, CAMERA_TILT, TILT_MIN, TILT_MAX, TILT_STEP, ZOOM_MIN, ZOOM_MAX, ZOOM_STEP } from '../config.js';
 
 export class IsometricCamera {
   constructor() {
@@ -8,6 +8,8 @@ export class IsometricCamera {
     this.targetRotation = 0;
     this.currentRotation = 0;
     this.zoomPercent = 0;
+    this.tiltDeg = CAMERA_TILT;
+    this.tiltDirection = 1;
     this.baseSize = 5;
     this.center = new THREE.Vector3();
     this._tweenStart = 0;
@@ -43,7 +45,7 @@ export class IsometricCamera {
   _updateCameraPosition() {
     if (!this.camera) return;
     const angle = THREE.MathUtils.degToRad(this.currentRotation + 45);
-    const tilt = THREE.MathUtils.degToRad(35.264);
+    const tilt = THREE.MathUtils.degToRad(this.tiltDeg);
     const dist = 50;
     this.camera.position.set(
       this.center.x + Math.sin(angle) * Math.cos(tilt) * dist,
@@ -87,7 +89,15 @@ export class IsometricCamera {
 
   getRotationStep() { return this.rotationStep; }
   getZoomPercent() { return this.zoomPercent; }
+  getTiltDeg() { return this.tiltDeg; }
   getCamera() { return this.camera; }
+
+  tiltStep() {
+    this.tiltDeg += TILT_STEP * this.tiltDirection;
+    if (this.tiltDeg >= TILT_MAX) { this.tiltDeg = TILT_MAX; this.tiltDirection = -1; }
+    if (this.tiltDeg <= TILT_MIN) { this.tiltDeg = TILT_MIN; this.tiltDirection = 1; }
+    this._updateCameraPosition();
+  }
 
   update(dt) {
     if (!this._tweening) return;

@@ -60,6 +60,7 @@ export class InputHandler {
       case ' ': cb.onRotateRight?.(); e.preventDefault(); break;
       case '+': case '=': cb.onZoomIn?.(); break;
       case '-': case '_': cb.onZoomOut?.(); break;
+      case 'p': case 'P': cb.onTilt?.(); break;
     }
   }
 

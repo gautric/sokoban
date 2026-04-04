@@ -1,3 +1,5 @@
+import { CAMERA_TILT } from '../config.js';
+
 export class CompassOverlay {
   constructor() {
     this.el = null;
@@ -29,11 +31,11 @@ export class CompassOverlay {
     container.appendChild(this.el);
   }
 
-  setRotation(angleDeg) {
+  setRotation(angleDeg, tiltDeg) {
     this.angle = angleDeg;
+    const t = tiltDeg !== undefined ? tiltDeg : CAMERA_TILT;
     if (this.el) {
-      // Isometric camera has a 45° base offset; compass must match
-      this.el.querySelector('.compass-ring').style.transform = `rotateX(55deg) rotate(${-(angleDeg + 45)}deg)`;
+      this.el.querySelector('.compass-ring').style.transform = `rotateX(${t}deg) rotate(${-(angleDeg + 45)}deg)`;
     }
   }
 
