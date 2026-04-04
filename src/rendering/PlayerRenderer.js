@@ -26,13 +26,28 @@ export class PlayerRenderer {
     this.sprite.position.y = 0.6;
     this.scene.add(this.sprite);
 
-    // Shadow blob
-    const shadowGeo = new THREE.PlaneGeometry(0.5, 0.5);
-    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false });
+    // Shadow using ghost shape
+    const shadowTex = new THREE.TextureLoader().load('assets/ghosty.png');
+    shadowTex.magFilter = THREE.NearestFilter;
+    shadowTex.minFilter = THREE.NearestFilter;
+    const shadowMat = new THREE.MeshBasicMaterial({
+      map: shadowTex, color: 0x000000, transparent: true, opacity: 0.3,
+      depthWrite: false, alphaTest: 0.1,
+    });
+    const shadowGeo = new THREE.PlaneGeometry(0.6, 0.6);
     this.shadow = new THREE.Mesh(shadowGeo, shadowMat);
     this.shadow.rotation.x = -Math.PI / 2;
-    this.shadow.position.y = 0.005;
+    this.shadow.rotation.z = Math.PI / 4; // align with isometric view
+    this.shadow.scale.set(1, 0.6, 1); // squash for isometric perspective
+    this.shadow.position.y = 0.003;
+    this._shadowOff = { x: 0.2, z: 0.2 };
     this.scene.add(this.shadow);
+  }
+
+  _updateShadowPos(wx, wz) {
+    if (!this.shadow) return;
+    this.shadow.position.x = wx + this._shadowOff.x;
+    this.shadow.position.z = wz + this._shadowOff.z;
   }
 
   setPosition(x, y, animated = false) {
@@ -42,7 +57,7 @@ export class PlayerRenderer {
       this._animateToPosition(wx, wz);
     } else {
       if (this.sprite) { this.sprite.position.x = wx; this.sprite.position.z = wz; }
-      if (this.shadow) { this.shadow.position.x = wx; this.shadow.position.z = wz; }
+      this._updateShadowPos(wx, wz);
     }
     this.gridX = x;
     this.gridY = y;
@@ -57,8 +72,8 @@ export class PlayerRenderer {
       const e = t * (2 - t);
       this.sprite.position.x = sx + (tx - sx) * e;
       this.sprite.position.z = sz + (tz - sz) * e;
-      this.shadow.position.x = this.sprite.position.x;
-      this.shadow.position.z = this.sprite.position.z;
+      this.shadow.position.x = this.sprite.position.x + this._shadowOff.x;
+      this.shadow.position.z = this.sprite.position.z + this._shadowOff.z;
       if (t < 1) requestAnimationFrame(anim);
       else this._animating = false;
     };
@@ -66,6 +81,12 @@ export class PlayerRenderer {
   }
 
   isAnimating() { return this._animating; }
+
+  setCameraAngle(angleDeg) {
+    if (this.shadow) {
+      this.shadow.rotation.z = THREE.MathUtils.degToRad(angleDeg + 45);
+    }
+  }
 
   setDirection(dir) {
     if (!this.sprite) return;

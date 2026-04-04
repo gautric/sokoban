@@ -213,6 +213,7 @@ export class GameScene {
     if (!this.active) return;
     this.isoCamera.update(dt);
     this.playerRenderer.update(dt);
+    this.playerRenderer.setCameraAngle(this.isoCamera.getRotationAngle());
     this.boardRenderer.updateOcclusion(this.board.playerPos, this.isoCamera.getCamera());
     this.boardRenderer.updateOcclusionTween(dt);
     this.boardRenderer.updateTargetPulse(performance.now() / 1000);
