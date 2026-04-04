@@ -73,7 +73,15 @@ canvas { display: block; }
   width: 96px;
   height: 96px;
   filter: drop-shadow(0 0 8px #7B61FF) drop-shadow(0 0 20px #7B61FF55);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
+.menu-ghost:hover .menu-ghost-img {
+  image-rendering: pixelated;
+  width: 192px;
+  height: 192px;
+}
+
 .menu-ghost::after {
   content: '';
   position: absolute;
