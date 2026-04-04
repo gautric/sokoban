@@ -208,13 +208,28 @@ export class GameScene {
 
   _onWin() {
     this.hud.pauseTimer();
-    const moves = this.stateManager.getMoveCount();
-    const pushes = this.stateManager.getPushCount();
-    const time = this.hud.getElapsedSeconds();
-    const stars = this.levelManager.saveCompletion(this.currentLevelId, moves, pushes);
+    this.playerRenderer.startWinCelebration();
+    this._winData = {
+      moves: this.stateManager.getMoveCount(),
+      pushes: this.stateManager.getPushCount(),
+      time: this.hud.getElapsedSeconds(),
+      stars: this.levelManager.saveCompletion(this.currentLevelId, this.stateManager.getMoveCount(), this.stateManager.getPushCount()),
+    };
     this.audioManager.music?.playLevelComplete();
-    this.levelComplete.show(stars, moves, pushes, time);
     this.stateManager.clearSession();
+
+    const showComplete = () => {
+      if (!this._winData) return;
+      const { stars, moves, pushes, time } = this._winData;
+      this._winData = null;
+      this.levelComplete.show(stars, moves, pushes, time);
+      clearTimeout(this._winTimer);
+      window.removeEventListener('keydown', this._winKeyHandler);
+    };
+
+    this._winKeyHandler = (e) => { if (e.key === ' ') showComplete(); };
+    window.addEventListener('keydown', this._winKeyHandler);
+    this._winTimer = setTimeout(showComplete, 5000);
   }
 
   update(dt) {

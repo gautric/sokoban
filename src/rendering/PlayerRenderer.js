@@ -97,6 +97,24 @@ export class PlayerRenderer {
 
   setMoving(isMoving) { this.moving = isMoving; }
 
+  startWinCelebration() {
+    if (!this.sprite) return;
+    this._celebrating = true;
+    this._celebrateStart = performance.now();
+    // Turn ghost violet
+    this.sprite.material.color.set(0x7B61FF);
+    // Add neon point light
+    this._neonLight = new THREE.PointLight(0x7B61FF, 2, 5);
+    this._neonLight.position.copy(this.sprite.position);
+    this.scene.add(this._neonLight);
+  }
+
+  _stopCelebration() {
+    this._celebrating = false;
+    if (this.sprite) this.sprite.material.color.set(0xffffff);
+    if (this._neonLight) { this.scene.remove(this._neonLight); this._neonLight = null; }
+  }
+
   update(dt) {
     this.elapsed += dt;
     if (!this.sprite) return;
@@ -105,8 +123,28 @@ export class PlayerRenderer {
     const bob = Math.sin((this.elapsed / PLAYER_BOB_PERIOD) * Math.PI * 2) * PLAYER_BOB_AMPLITUDE;
     this.sprite.position.y = 0.6 + bob;
 
+    // Win celebration: heartbeat neon for 5s
+    if (this._celebrating) {
+      const t = (performance.now() - this._celebrateStart) / 1000;
+      if (t > 5) {
+        this._stopCelebration();
+      } else if (this._neonLight) {
+        // Heartbeat: two quick pulses then pause (period ~0.8s)
+        const phase = (t % 0.8) / 0.8;
+        let intensity;
+        if (phase < 0.15) intensity = 1 + Math.sin(phase / 0.15 * Math.PI) * 3;
+        else if (phase < 0.3) intensity = 1 + Math.sin((phase - 0.15) / 0.15 * Math.PI) * 2;
+        else intensity = 0.5;
+        this._neonLight.intensity = intensity;
+        this._neonLight.position.copy(this.sprite.position);
+        // Pulse sprite brightness
+        const glow = 0.6 + intensity * 0.1;
+        this.sprite.material.color.setRGB(glow * 0.48, glow * 0.38, glow);
+      }
+    }
+
     // Particles
-    const rate = this.moving ? PARTICLE_SPAWN_RATE_MOVING : PARTICLE_SPAWN_RATE_IDLE;
+    const rate = this._celebrating ? PARTICLE_SPAWN_RATE_MOVING * 3 : (this.moving ? PARTICLE_SPAWN_RATE_MOVING : PARTICLE_SPAWN_RATE_IDLE);
     for (let i = 0; i < rate; i++) {
       this._spawnParticle();
     }
