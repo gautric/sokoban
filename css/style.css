@@ -67,17 +67,42 @@ canvas { display: block; }
 
 .menu-ghost {
   animation: bob 2s ease-in-out infinite;
+  position: relative;
 }
 .menu-ghost-img {
   width: 96px;
   height: 96px;
   image-rendering: pixelated;
+  filter: drop-shadow(0 0 8px #7B61FF) drop-shadow(0 0 20px #7B61FF55);
+}
+.menu-ghost::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 150px; height: 150px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, #7B61FF66 0%, #7B61FF22 40%, transparent 70%);
+  border-radius: 50%;
+  animation: heartbeat-glow 0.8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes heartbeat-glow {
+  0% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.4); }
+  30% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.1); }
+  45% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.25); }
+  60% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
 }
 
 @keyframes bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+
+
 
 .menu-buttons { display: flex; flex-direction: column; gap: 12px; }
 
