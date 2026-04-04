@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiro's Ghost Sokoban</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-container">
+    <div id="ui-overlay">
+      <div id="menu-screen"></div>
+      <div id="level-select-screen"></div>
+      <div id="hud">
+        <div class="hud-row"><span class="hud-label">Level:</span> <span id="hud-level">-</span></div>
+        <div class="hud-row"><span class="hud-label">Moves:</span> <span id="hud-moves">0</span></div>
+        <div class="hud-row"><span class="hud-label">Pushes:</span> <span id="hud-pushes">0</span></div>
+        <div class="hud-row"><span class="hud-label">Time:</span> <span id="hud-timer">00:00</span></div>
+      </div>
+      <div id="pause-menu"></div>
+      <div id="level-complete"></div>
+    </div>
+  </div>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
