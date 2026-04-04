@@ -16,32 +16,52 @@ export class PlayerRenderer {
   }
 
   init() {
-    // Ghost sprite
-    const tex = new THREE.TextureLoader().load('assets/ghosty.png');
-    tex.magFilter = THREE.NearestFilter;
-    tex.minFilter = THREE.NearestFilter;
-    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-    this.sprite = new THREE.Sprite(mat);
-    this.sprite.scale.set(0.8, 0.8, 1);
-    this.sprite.position.y = 0.6;
-    this.scene.add(this.sprite);
+    const loadSVGTexture = (callback) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, 256, 256);
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.generateMipmaps = true;
+        callback(tex);
+      };
+      img.src = 'assets/ghostv2.svg';
+    };
 
-    // Shadow using ghost shape
-    const shadowTex = new THREE.TextureLoader().load('assets/ghosty.png');
-    shadowTex.magFilter = THREE.NearestFilter;
-    shadowTex.minFilter = THREE.NearestFilter;
-    const shadowMat = new THREE.MeshBasicMaterial({
-      map: shadowTex, color: 0x000000, transparent: true, opacity: 0.3,
-      depthWrite: false, alphaTest: 0.1,
+    // Ghost sprite
+    loadSVGTexture((tex) => {
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+      this.sprite = new THREE.Sprite(mat);
+      this.sprite.scale.set(1, 1, 1);
+      this.sprite.position.y = 0.6;
+      this.sprite.position.x = this.gridX * TILE_SIZE;
+      this.sprite.position.z = this.gridY * TILE_SIZE;
+      this.scene.add(this.sprite);
     });
-    const shadowGeo = new THREE.PlaneGeometry(0.6, 0.6);
-    this.shadow = new THREE.Mesh(shadowGeo, shadowMat);
-    this.shadow.rotation.x = -Math.PI / 2;
-    this.shadow.rotation.z = Math.PI / 4; // align with isometric view
-    this.shadow.scale.set(1, 0.6, 1); // squash for isometric perspective
-    this.shadow.position.y = 0.003;
-    this._shadowOff = { x: 0.2, z: 0.2 };
-    this.scene.add(this.shadow);
+
+    // Shadow using SVG
+    loadSVGTexture((tex) => {
+      const shadowMat = new THREE.MeshBasicMaterial({
+        map: tex, color: 0x000000, transparent: true, opacity: 0.3,
+        depthWrite: false, alphaTest: 0.1,
+      });
+      const shadowGeo = new THREE.PlaneGeometry(0.6, 0.6);
+      this.shadow = new THREE.Mesh(shadowGeo, shadowMat);
+      this.shadow.rotation.x = -Math.PI / 2;
+      this.shadow.rotation.z = Math.PI / 4;
+      this.shadow.scale.set(1, 0.6, 1);
+      this.shadow.position.y = 0.003;
+      this._shadowOff = { x: 0.2, z: 0.2 };
+      this._updateShadowPos(this.gridX * TILE_SIZE, this.gridY * TILE_SIZE);
+      this.scene.add(this.shadow);
+    });
   }
 
   _updateShadowPos(wx, wz) {
@@ -91,8 +111,8 @@ export class PlayerRenderer {
   setDirection(dir) {
     if (!this.sprite) return;
     this.sprite.material.rotation = 0;
-    if (dir === Direction.LEFT) this.sprite.scale.x = -0.8;
-    else this.sprite.scale.x = 0.8;
+    if (dir === Direction.LEFT) this.sprite.scale.x = -1;
+    else this.sprite.scale.x = 1;
   }
 
   setMoving(isMoving) { this.moving = isMoving; }

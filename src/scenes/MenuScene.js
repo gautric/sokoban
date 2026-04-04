@@ -12,7 +12,7 @@ export class MenuScene {
     if (this._built) return;
     this.el.innerHTML = `
       <h1 class="game-title">Kiro's Ghost<br>Sokoban</h1>
-      <div class="menu-ghost" data-testid="menu-ghost"><img src="assets/ghosty.png" alt="Kiro Ghost" class="menu-ghost-img"></div>
+      <div class="menu-ghost" data-testid="menu-ghost"><img src="assets/ghostv2.svg" alt="Kiro Ghost" class="menu-ghost-img"></div>
       <div class="menu-buttons"></div>
       <div class="how-to-play-modal" id="how-to-play" style="display:none">
         <h3>HOW TO PLAY</h3>

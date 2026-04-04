@@ -72,7 +72,6 @@ canvas { display: block; }
 .menu-ghost-img {
   width: 96px;
   height: 96px;
-  image-rendering: pixelated;
   filter: drop-shadow(0 0 8px #7B61FF) drop-shadow(0 0 20px #7B61FF55);
 }
 .menu-ghost::after {
