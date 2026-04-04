@@ -31,11 +31,10 @@ export class CompassOverlay {
     container.appendChild(this.el);
   }
 
-  setRotation(angleDeg, tiltDeg) {
+  setRotation(angleDeg) {
     this.angle = angleDeg;
-    const t = tiltDeg !== undefined ? tiltDeg : CAMERA_TILT;
     if (this.el) {
-      this.el.querySelector('.compass-ring').style.transform = `rotateX(${t}deg) rotate(${-(angleDeg + 45)}deg)`;
+      this.el.querySelector('.compass-ring').style.transform = `rotateX(${CAMERA_TILT}deg) rotate(${angleDeg + 45}deg)`;
     }
   }
 

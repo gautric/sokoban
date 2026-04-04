@@ -81,6 +81,8 @@ export class GameScene {
       onZoomIn: () => { this.isoCamera.zoomIn(); this.zoomIndicator.setZoom(this.isoCamera.getZoomPercent()); this.minimap.setZoom(this.isoCamera.getZoomPercent()); },
       onZoomOut: () => { this.isoCamera.zoomOut(); this.zoomIndicator.setZoom(this.isoCamera.getZoomPercent()); this.minimap.setZoom(this.isoCamera.getZoomPercent()); },
       onTilt: () => { this.isoCamera.tiltStep(); this.tiltIndicator.setTilt(this.isoCamera.getTiltDeg()); },
+      onTiltUp: () => { this.isoCamera.tiltUp(); this.tiltIndicator.setTilt(this.isoCamera.getTiltDeg()); },
+      onTiltDown: () => { this.isoCamera.tiltDown(); this.tiltIndicator.setTilt(this.isoCamera.getTiltDeg()); },
       onToggleMute: () => this.audioManager.toggleMute(),
       onPause: () => this._togglePause(),
     });
@@ -223,7 +225,7 @@ export class GameScene {
     this.boardRenderer.updateOcclusion(this.board.playerPos, this.isoCamera.getCamera());
     this.boardRenderer.updateOcclusionTween(dt);
     this.boardRenderer.updateTargetPulse(performance.now() / 1000);
-    this.compass.setRotation(this.isoCamera.getRotationAngle(), this.isoCamera.getTiltDeg());
+    this.compass.setRotation(this.isoCamera.getRotationAngle());
     this.minimap.setRotation(this.isoCamera.getRotationAngle());
     this.hud.update(this.stateManager.getMoveCount(), this.stateManager.getPushCount());
   }

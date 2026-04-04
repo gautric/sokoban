@@ -99,6 +99,16 @@ export class IsometricCamera {
     this._updateCameraPosition();
   }
 
+  tiltUp() {
+    this.tiltDeg = Math.min(TILT_MAX, this.tiltDeg + TILT_STEP);
+    this._updateCameraPosition();
+  }
+
+  tiltDown() {
+    this.tiltDeg = Math.max(TILT_MIN, this.tiltDeg - TILT_STEP);
+    this._updateCameraPosition();
+  }
+
   update(dt) {
     if (!this._tweening) return;
     const elapsed = performance.now() - this._tweenStart;

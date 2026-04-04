@@ -75,16 +75,25 @@ export class InputHandler {
     if (e.button === 0) {
       this._dragging = true;
       this._lastMouseX = e.clientX;
+      this._lastMouseY = e.clientY;
     }
   }
 
   _onMouseMove(e) {
     if (!this._dragging || !this.enabled) return;
     const dx = e.clientX - this._lastMouseX;
+    const dy = e.clientY - this._lastMouseY;
+    // Horizontal drag → rotation
     if (Math.abs(dx) > 60) {
       if (dx > 0) this.callbacks.onRotateRight?.();
       else this.callbacks.onRotateLeft?.();
       this._lastMouseX = e.clientX;
+    }
+    // Vertical drag → tilt
+    if (Math.abs(dy) > 30) {
+      if (dy > 0) this.callbacks.onTiltDown?.();
+      else this.callbacks.onTiltUp?.();
+      this._lastMouseY = e.clientY;
     }
   }
 
