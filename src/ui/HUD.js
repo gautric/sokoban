@@ -1,10 +1,15 @@
 export class HUD {
-  constructor() {
+  constructor(onMusicToggle) {
     this.el = document.getElementById('hud');
     this.levelEl = document.getElementById('hud-level');
     this.movesEl = document.getElementById('hud-moves');
     this.pushesEl = document.getElementById('hud-pushes');
     this.timerEl = document.getElementById('hud-timer');
+    this.musicBtn = document.getElementById('hud-music');
+    this.musicBtn.addEventListener('click', () => {
+      onMusicToggle?.();
+      this.musicBtn.textContent = this.musicBtn.textContent === 'ON' ? 'OFF' : 'ON';
+    });
     this.startTime = 0;
     this.running = false;
     this.elapsed = 0;

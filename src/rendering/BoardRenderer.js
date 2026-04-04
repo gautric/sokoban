@@ -107,46 +107,9 @@ export class BoardRenderer {
 
   isAnimating() { return this._animating; }
 
-  updateOcclusion(playerPos, camera) {
-    const playerWorld = new THREE.Vector3(playerPos.x * TILE_SIZE, 0.5, playerPos.y * TILE_SIZE);
-    const camDir = new THREE.Vector3();
-    camera.getWorldDirection(camDir);
+  updateOcclusion() {}
 
-    for (const wall of this.wallMeshes) {
-      const wallWorld = new THREE.Vector3(wall.position.x, 0.5, wall.position.z);
-      const toWall = wallWorld.clone().sub(camera.position);
-      const toPlayer = playerWorld.clone().sub(camera.position);
-
-      // Wall occludes if it's closer to camera than player and roughly in same screen direction
-      const wallDist = toWall.length();
-      const playerDist = toPlayer.length();
-      const dx = Math.abs(wall.userData.gridX - playerPos.x);
-      const dy = Math.abs(wall.userData.gridY - playerPos.y);
-      const isNear = dx <= 2 && dy <= 2;
-      const isCloser = wallDist < playerDist;
-
-      wall.userData.targetOpacity = (isNear && isCloser) ? OCCLUSION_MIN_OPACITY : 1;
-    }
-  }
-
-  updateOcclusionTween(dt) {
-    for (const wall of this.wallMeshes) {
-      const target = wall.userData.targetOpacity;
-      const current = wall.userData.opacity;
-      if (Math.abs(current - target) < 0.01) {
-        wall.userData.opacity = target;
-      } else {
-        const speed = dt / OCCLUSION_FADE_DURATION;
-        wall.userData.opacity += (target - current) * Math.min(speed * 5, 1);
-      }
-      const mats = Array.isArray(wall.material) ? wall.material : [wall.material];
-      for (const mat of mats) {
-        mat.transparent = wall.userData.opacity < 1;
-        mat.opacity = wall.userData.opacity;
-        mat.depthWrite = wall.userData.opacity >= 1;
-      }
-    }
-  }
+  updateOcclusionTween() {}
 
   updateTargetPulse(time) {
     const pulse = 0.3 + Math.sin(time * 3) * 0.15;

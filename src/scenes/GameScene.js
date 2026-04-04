@@ -6,6 +6,7 @@ import { BoardRenderer } from '../rendering/BoardRenderer.js';
 import { PlayerRenderer } from '../rendering/PlayerRenderer.js';
 import { CompassOverlay } from '../rendering/CompassOverlay.js';
 import { ZoomIndicator } from '../rendering/ZoomIndicator.js';
+import { Minimap } from '../rendering/Minimap.js';
 import { HUD } from '../ui/HUD.js';
 import { PauseMenu } from '../ui/PauseMenu.js';
 import { LevelCompleteUI } from '../ui/LevelCompleteUI.js';
@@ -25,7 +26,8 @@ export class GameScene {
     this.playerRenderer = new PlayerRenderer(this.scene);
     this.compass = new CompassOverlay();
     this.zoomIndicator = new ZoomIndicator();
-    this.hud = new HUD();
+    this.minimap = new Minimap();
+    this.hud = new HUD(() => this.audioManager.toggleMute());
     this.levelComplete = null;
     this.pauseMenu = null;
     this.currentLevelId = 0;
@@ -48,6 +50,7 @@ export class GameScene {
 
     // Init UI
     this.zoomIndicator.init(document.getElementById('ui-overlay'));
+    this.compass.init(document.getElementById('ui-overlay'));
     this.pauseMenu = new PauseMenu({
       onResume: () => { this.inputHandler.enabled = true; this.hud.resumeTimer(); },
       onRestart: () => this._restartLevel(),
@@ -72,8 +75,8 @@ export class GameScene {
       onRestart: () => this._restartLevel(),
       onRotateLeft: () => this._rotateCamera(-1),
       onRotateRight: () => this._rotateCamera(1),
-      onZoomIn: () => { this.isoCamera.zoomIn(); this.zoomIndicator.setZoom(this.isoCamera.getZoomPercent()); },
-      onZoomOut: () => { this.isoCamera.zoomOut(); this.zoomIndicator.setZoom(this.isoCamera.getZoomPercent()); },
+      onZoomIn: () => { this.isoCamera.zoomIn(); this.zoomIndicator.setZoom(this.isoCamera.getZoomPercent()); this.minimap.setZoom(this.isoCamera.getZoomPercent()); },
+      onZoomOut: () => { this.isoCamera.zoomOut(); this.zoomIndicator.setZoom(this.isoCamera.getZoomPercent()); this.minimap.setZoom(this.isoCamera.getZoomPercent()); },
       onToggleMute: () => this.audioManager.toggleMute(),
       onPause: () => this._togglePause(),
     });
@@ -91,6 +94,8 @@ export class GameScene {
     if (this.levelComplete) this.levelComplete.hide();
     const zi = document.getElementById('zoom-indicator');
     if (zi) zi.remove();
+    const cp = document.getElementById('compass');
+    if (cp) cp.remove();
   }
 
   _loadLevel(levelId) {
@@ -110,6 +115,7 @@ export class GameScene {
 
     this.isoCamera.init(this.board.width, this.board.height);
     this.isoCamera.zoomPercent = 0;
+    this.minimap.init(this.board.width, this.board.height);
     this.inputHandler.setRotationStep(this.isoCamera.getRotationStep());
     this.zoomIndicator.setZoom(0);
 
@@ -211,6 +217,7 @@ export class GameScene {
     this.boardRenderer.updateOcclusionTween(dt);
     this.boardRenderer.updateTargetPulse(performance.now() / 1000);
     this.compass.setRotation(this.isoCamera.getRotationAngle());
+    this.minimap.setRotation(this.isoCamera.getRotationAngle());
     this.hud.update(this.stateManager.getMoveCount(), this.stateManager.getPushCount());
   }
 
@@ -218,6 +225,6 @@ export class GameScene {
     if (!this.active) return;
     renderer.setViewport(0, 0, renderer.domElement.width, renderer.domElement.height);
     renderer.render(this.scene, this.isoCamera.getCamera());
-    this.compass.render(renderer);
+    this.minimap.render(renderer, this.scene);
   }
 }

@@ -57,6 +57,7 @@ export class InputHandler {
       case 'e': case 'E': cb.onRotateRight?.(); break;
       case 'm': case 'M': cb.onToggleMute?.(); break;
       case 'Escape': cb.onPause?.(); break;
+      case ' ': cb.onRotateRight?.(); e.preventDefault(); break;
       case '+': case '=': cb.onZoomIn?.(); break;
       case '-': case '_': cb.onZoomOut?.(); break;
     }

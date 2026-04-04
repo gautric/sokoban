@@ -23,7 +23,7 @@ export class TileFactory {
 
   static createTarget() {
     const geo = new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE);
-    const mat = new THREE.MeshLambertMaterial({ map: PixelTextures.getTargetTexture(), emissive: 0x331111, emissiveIntensity: 0.3 });
+    const mat = new THREE.MeshLambertMaterial({ map: PixelTextures.getTargetTexture(), emissive: 0x113311, emissiveIntensity: 0.3 });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = 0.002;
