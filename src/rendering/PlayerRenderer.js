@@ -207,6 +207,7 @@ export class PlayerRenderer {
   }
 
   dispose() {
+    if (this._celebrating) this._stopCelebration();
     if (this.sprite) { this.scene.remove(this.sprite); this.sprite.material.dispose(); }
     if (this.shadow) { this.scene.remove(this.shadow); this.shadow.geometry.dispose(); this.shadow.material.dispose(); }
     for (const p of this.particles) {

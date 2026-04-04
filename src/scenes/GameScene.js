@@ -143,6 +143,8 @@ export class GameScene {
       return;
     }
 
+    if (this.playerRenderer._celebrating) this.playerRenderer._stopCelebration();
+
     if (!this.firstMove) { this.hud.startTimer(); this.firstMove = true; }
 
     this.stateManager.incrementMoves();
