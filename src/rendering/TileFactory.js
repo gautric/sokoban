@@ -34,7 +34,12 @@ export class TileFactory {
   static createBox(onTarget = false) {
     const geo = new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE);
     const tex = onTarget ? PixelTextures.getBoxOnTargetTexture() : PixelTextures.getBoxTexture();
-    const mat = new THREE.MeshLambertMaterial({ map: tex });
+    const mat = new THREE.MeshLambertMaterial({
+      map: tex,
+      color: onTarget ? 0x116611 : 0xffffff,
+      emissive: onTarget ? 0x0a440a : 0x000000,
+      emissiveIntensity: onTarget ? 0.5 : 0,
+    });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.y = BOX_SIZE / 2;
     return mesh;
