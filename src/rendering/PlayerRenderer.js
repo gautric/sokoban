@@ -145,11 +145,7 @@ export class PlayerRenderer {
 
     // Win celebration: heartbeat neon for 5s
     if (this._celebrating) {
-      const t = (performance.now() - this._celebrateStart) / 1000;
-      if (t > 5) {
-        this._stopCelebration();
-      } else if (this._neonLight) {
-        // Heartbeat: two quick pulses then pause (period ~0.8s)
+        const t = (performance.now() - this._celebrateStart) / 1000;
         const phase = (t % 0.8) / 0.8;
         let intensity;
         if (phase < 0.15) intensity = 1 + Math.sin(phase / 0.15 * Math.PI) * 3;
@@ -160,7 +156,6 @@ export class PlayerRenderer {
         // Pulse sprite brightness
         const glow = 0.6 + intensity * 0.1;
         this.sprite.material.color.setRGB(glow * 0.48, glow * 0.38, glow);
-      }
     }
 
     // Particles
