@@ -101,7 +101,11 @@ export class BoardRenderer {
       if (t < 1) requestAnimationFrame(anim);
       else {
         this.group.remove(mesh);
-        this._addBox(toX, toY, board.tiles[toY][toX] === TileType.TARGET);
+        if (mesh.geometry) mesh.geometry.dispose();
+        if (mesh.material) {
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          mats.forEach(m => m.dispose());
+        }
       }
     };
     anim();
