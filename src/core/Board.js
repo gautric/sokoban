@@ -17,6 +17,7 @@ export class Board {
     this.entities = level.entities.map(r => [...r]);
     this.playerPos = { ...level.playerStart };
     this.targetPositions = level.targetPositions.map(p => ({ ...p }));
+    this.boxesLocked = false;
   }
 
   getTile(x, y) {
@@ -39,6 +40,7 @@ export class Board {
     }
 
     if (this.getEntity(nx, ny) === EntityType.BOX) {
+      if (this.boxesLocked) return MoveResult.BLOCKED;
       const bx = nx + dv.x;
       const by = ny + dv.y;
       if (this.getTile(bx, by) === TileType.WALL || this.getTile(bx, by) === TileType.EMPTY ||

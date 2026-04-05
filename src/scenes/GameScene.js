@@ -210,6 +210,7 @@ export class GameScene {
   }
 
   _onWin() {
+    this.board.boxesLocked = true;
     this.hud.pauseTimer();
     this.playerRenderer.startWinCelebration();
     this._winData = {
