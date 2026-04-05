@@ -74,20 +74,86 @@ export class PixelTextures {
 
   static getBoxTexture() {
     if (cache.box) return cache.box;
-    const tex = new THREE.TextureLoader().load('assets/wood.webp');
-    tex.magFilter = THREE.NearestFilter;
-    tex.minFilter = THREE.NearestFilter;
-    cache.box = tex;
+    cache.box = createTexture(ctx => {
+      ctx.fillStyle = '#8B5E3C';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 20);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.15})`; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
     return cache.box;
+  }
+
+  static getBoxTopTexture() {
+    if (cache.boxTop) return cache.boxTop;
+    cache.boxTop = createTexture(ctx => {
+      ctx.fillStyle = '#A0724A';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 21);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.12})`; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
+    return cache.boxTop;
+  }
+
+  static getBoxDarkTexture() {
+    if (cache.boxDark) return cache.boxDark;
+    cache.boxDark = createTexture(ctx => {
+      ctx.fillStyle = '#6B3A22';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 22);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.18})`; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
+    return cache.boxDark;
   }
 
   static getBoxOnTargetTexture() {
     if (cache.boxTarget) return cache.boxTarget;
-    const tex = new THREE.TextureLoader().load('assets/wood.webp');
-    tex.magFilter = THREE.NearestFilter;
-    tex.minFilter = THREE.NearestFilter;
-    cache.boxTarget = tex;
+    cache.boxTarget = createTexture(ctx => {
+      ctx.fillStyle = '#4C944C';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 23);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.15})`; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
     return cache.boxTarget;
+  }
+
+  static getBoxOnTargetTopTexture() {
+    if (cache.boxTargetTop) return cache.boxTargetTop;
+    cache.boxTargetTop = createTexture(ctx => {
+      ctx.fillStyle = '#5CA85C';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 24);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.12})`; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
+    return cache.boxTargetTop;
+  }
+
+  static getBoxOnTargetDarkTexture() {
+    if (cache.boxTargetDark) return cache.boxTargetDark;
+    cache.boxTargetDark = createTexture(ctx => {
+      ctx.fillStyle = '#3A6E3A';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 25);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.18})`; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
+    return cache.boxTargetDark;
   }
 
   static getWallTopTexture() {

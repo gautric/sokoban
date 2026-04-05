@@ -33,14 +33,14 @@ export class TileFactory {
 
   static createBox(onTarget = false) {
     const geo = new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE);
-    const tex = onTarget ? PixelTextures.getBoxOnTargetTexture() : PixelTextures.getBoxTexture();
-    const mat = new THREE.MeshLambertMaterial({
-      map: tex,
-      color: onTarget ? 0x116611 : 0xffffff,
-      emissive: onTarget ? 0x0a440a : 0x000000,
-      emissiveIntensity: onTarget ? 0.5 : 0,
-    });
-    const mesh = new THREE.Mesh(geo, mat);
+    const side = onTarget ? PixelTextures.getBoxOnTargetTexture() : PixelTextures.getBoxTexture();
+    const top = onTarget ? PixelTextures.getBoxOnTargetTopTexture() : PixelTextures.getBoxTopTexture();
+    const dark = onTarget ? PixelTextures.getBoxOnTargetDarkTexture() : PixelTextures.getBoxDarkTexture();
+    const matSide = new THREE.MeshLambertMaterial({ map: side });
+    const matTop = new THREE.MeshLambertMaterial({ map: top });
+    const matDark = new THREE.MeshLambertMaterial({ map: dark });
+    // BoxGeometry face order: +x, -x, +y, -y, +z, -z
+    const mesh = new THREE.Mesh(geo, [matDark, matSide, matTop, matTop, matSide, matDark]);
     mesh.position.y = BOX_SIZE / 2;
     return mesh;
   }
