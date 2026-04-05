@@ -40,14 +40,15 @@ async function init() {
   // Init audio on first user interaction
   const initAudio = () => {
     audioManager.init();
-    if (sceneManager.currentName === 'menu' || sceneManager.currentName === 'levelSelect') {
-      audioManager.music?.playMenu();
-    }
-    document.removeEventListener('click', initAudio);
-    document.removeEventListener('keydown', initAudio);
+    document.removeEventListener('click', initAudio, true);
+    document.removeEventListener('keydown', initAudio, true);
+    // Start music for whatever scene is currently active
+    const name = sceneManager.currentName;
+    if (name === 'menu' || name === 'levelSelect') audioManager.music?.playMenu();
+    else if (name === 'game') audioManager.music?.playGameplay();
   };
-  document.addEventListener('click', initAudio);
-  document.addEventListener('keydown', initAudio);
+  document.addEventListener('click', initAudio, true);
+  document.addEventListener('keydown', initAudio, true);
 
   // Start
   sceneManager.switchTo('menu');

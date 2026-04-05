@@ -71,6 +71,8 @@ export class GameScene {
     });
 
     this._loadLevel(levelId);
+    this.audioManager.music?.stop();
+    this.audioManager.music?.playGameplay();
 
     this.inputHandler.init({
       onMove: (dir) => this._handleMove(dir),

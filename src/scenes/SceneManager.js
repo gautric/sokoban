@@ -13,10 +13,10 @@ export class SceneManager {
     if (this.current) this.current.activate(...args);
 
     // Audio coordination
-    if (this.audio?.initialized) {
-      this.audio.music?.stop();
-      if (name === 'menu' || name === 'levelSelect') this.audio.music?.playMenu();
-      else if (name === 'game') this.audio.music?.playGameplay();
+    if (this.audio?.music) {
+      this.audio.music.stop();
+      if (name === 'menu' || name === 'levelSelect') this.audio.music.playMenu();
+      else if (name === 'game') this.audio.music.playGameplay();
     }
   }
 
