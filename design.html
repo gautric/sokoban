@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sokoban - Game Objects Design</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; color: #eee; font-family: 'Courier New', monospace; padding: 40px; }
+    h1 { text-align: center; margin-bottom: 40px; color: #7B61FF; font-size: 2em; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 30px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 2px solid #0f3460;
+    }
+    .card h2 { color: #7B61FF; margin-bottom: 15px; font-size: 1.1em; }
+    .card canvas { border-radius: 8px; image-rendering: pixelated; display: block; margin: 0 auto; }
+    .card p { margin-top: 10px; font-size: 0.85em; color: #aaa; }
+  </style>
+</head>
+<body>
+  <h1>🎮 Sokoban — Game Objects</h1>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const S = 128;
+
+    function noise(x, y, seed) {
+      const n = Math.sin(x * 127.1 + y * 311.7 + seed * 43758.5453) * 43758.5453;
+      return n - Math.floor(n);
+    }
+
+    function card(title, desc, drawFn) {
+      const div = document.createElement('div');
+      div.className = 'card';
+      const h2 = document.createElement('h2');
+      h2.textContent = title;
+      const c = document.createElement('canvas');
+      c.width = c.height = S;
+      const p = document.createElement('p');
+      p.textContent = desc;
+      div.appendChild(h2);
+      div.appendChild(c);
+      div.appendChild(p);
+      document.getElementById('grid').appendChild(div);
+      drawFn(c.getContext('2d'));
+    }
+
+    function loadImg(src) {
+      return new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+    }
+
+    // Player
+    card('Player', 'Ghost sprite (SVG)', ctx => {
+      ctx.fillStyle = '#222';
+      ctx.fillRect(0, 0, S, S);
+      loadImg('assets/ghost.svg').then(img => ctx.drawImage(img, 0, 0, S, S));
+    });
+
+    // Floor
+    card('Floor', 'Stone floor — #C8BCA0 + noise', ctx => {
+      ctx.fillStyle = '#C8BCA0';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 7);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.15})`; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
+
+    // Wall
+    card('Wall', 'Brick texture (wall.jpg)', ctx => {
+      ctx.fillStyle = '#8B7B6F';
+      ctx.fillRect(0, 0, S, S);
+      loadImg('assets/wall.jpg').then(img => ctx.drawImage(img, 0, 0, S, S));
+    });
+
+    // Wall Top
+    card('Wall Top', 'Top face — #7B6B5F + noise', ctx => {
+      ctx.fillStyle = '#8B7B6F';
+      ctx.fillRect(0, 0, S, S);
+      ctx.fillStyle = '#7B6B5F';
+      ctx.fillRect(2, 2, S - 4, S - 4);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          if (noise(x, y, 13) > 0.8) { ctx.fillStyle = 'rgba(0,0,0,0.08)'; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
+
+    // Box
+    card('Box', 'Wood crate (wood.webp)', ctx => {
+      ctx.fillStyle = '#8B6914';
+      ctx.fillRect(0, 0, S, S);
+      loadImg('assets/wood.webp').then(img => ctx.drawImage(img, 0, 0, S, S));
+    });
+
+    // Green Box
+    card('Green Box', 'Box on target — green tint', ctx => {
+      ctx.fillStyle = '#1a3a1a';
+      ctx.fillRect(0, 0, S, S);
+      loadImg('assets/wood.webp').then(img => {
+        ctx.drawImage(img, 0, 0, S, S);
+        ctx.fillStyle = 'rgba(0,100,0,0.45)';
+        ctx.fillRect(0, 0, S, S);
+      });
+    });
+
+    // Green Floor (target)
+    card('Green Floor', 'Target tile — #2E5E2E + noise', ctx => {
+      ctx.fillStyle = '#2E5E2E';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 11);
+          if (n > 0.65) { ctx.fillStyle = 'rgba(80,180,80,0.12)'; ctx.fillRect(x, y, 1, 1); }
+        }
+    });
+  </script>
+</body>
+</html>

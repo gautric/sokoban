@@ -61,9 +61,8 @@ export class LevelManager {
     return next < this.levels.length ? next : null;
   }
 
-  isUnlocked(levelId) {
-    if (levelId === 0) return true;
-    return levelId < this.stateManager.getUnlockedLevel();
+  isUnlocked() {
+    return true;
   }
 
   getStarRating(levelId, moves) {
