@@ -85,6 +85,28 @@ export class BoardRenderer {
     }
   }
 
+  animateBoxPush(fromX, fromY, toX, toY, board) {
+    const key = `${fromX},${fromY}`;
+    const mesh = this.boxMeshes[key];
+    if (!mesh) return;
+    delete this.boxMeshes[key];
+    const sx = fromX * TILE_SIZE, sz = fromY * TILE_SIZE;
+    const tx = toX * TILE_SIZE, tz = toY * TILE_SIZE;
+    const start = performance.now();
+    const anim = () => {
+      const t = Math.min((performance.now() - start) / MOVE_LERP_DURATION, 1);
+      const e = t * (2 - t);
+      mesh.position.x = sx + (tx - sx) * e;
+      mesh.position.z = sz + (tz - sz) * e;
+      if (t < 1) requestAnimationFrame(anim);
+      else {
+        this.group.remove(mesh);
+        this._addBox(toX, toY, board.tiles[toY][toX] === TileType.TARGET);
+      }
+    };
+    anim();
+  }
+
   animateMove(mesh, fromX, fromZ, toX, toZ) {
     return new Promise(resolve => {
       this._animating = true;

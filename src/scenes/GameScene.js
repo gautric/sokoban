@@ -155,10 +155,11 @@ export class GameScene {
     if (result === MoveResult.PUSHED) {
       this.stateManager.incrementPushes();
       this.audioManager.sfx?.playPush();
-      // Check if box landed on target
       const dv = { 0:{x:0,y:-1}, 1:{x:0,y:1}, 2:{x:-1,y:0}, 3:{x:1,y:0} }[direction];
       const bx = this.board.playerPos.x + dv.x;
       const by = this.board.playerPos.y + dv.y;
+      // Animate box from player's new pos to box's new pos
+      this.boardRenderer.animateBoxPush(this.board.playerPos.x, this.board.playerPos.y, bx, by, this.board);
       if (this.board.getTile(bx, by) === 3) { // TARGET
         setTimeout(() => this.audioManager.sfx?.playBoxOnTarget(), 100);
       }
