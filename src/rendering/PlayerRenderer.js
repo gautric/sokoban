@@ -223,8 +223,19 @@ export class PlayerRenderer {
 
   dispose() {
     if (this._celebrating) this._stopCelebration();
-    if (this.sprite) { this.scene.remove(this.sprite); this.sprite.material.dispose(); }
-    if (this.shadow) { this.scene.remove(this.shadow); this.shadow.geometry.dispose(); this.shadow.material.dispose(); }
+    if (this.sprite) {
+      this.scene.remove(this.sprite);
+      if (this.sprite.material.map) this.sprite.material.map.dispose();
+      this.sprite.material.dispose();
+      this.sprite = null;
+    }
+    if (this.shadow) {
+      this.scene.remove(this.shadow);
+      if (this.shadow.material.map) this.shadow.material.map.dispose();
+      this.shadow.material.dispose();
+      this.shadow.geometry.dispose();
+      this.shadow = null;
+    }
     for (const p of this.particles) {
       this.scene.remove(p.mesh);
       p.mesh.geometry.dispose();

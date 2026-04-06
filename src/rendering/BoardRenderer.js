@@ -69,18 +69,28 @@ export class BoardRenderer {
     this.group.add(box);
   }
 
+  _replaceBox(x, y, onTarget) {
+    const key = `${x},${y}`;
+    const old = this.boxMeshes[key];
+    if (old) this.group.remove(old);
+    this._addBox(x, y, onTarget);
+  }
+
   updateBoard(board) {
-    // Remove old boxes
+    const needed = new Set();
+    for (let y = 0; y < board.height; y++)
+      for (let x = 0; x < board.width; x++)
+        if (board.entities[y][x] === EntityType.BOX) needed.add(`${x},${y}`);
     for (const key in this.boxMeshes) {
-      this.group.remove(this.boxMeshes[key]);
+      if (!needed.has(key)) {
+        this.group.remove(this.boxMeshes[key]);
+        delete this.boxMeshes[key];
+      }
     }
-    this.boxMeshes = {};
-    // Re-add boxes at current positions
-    for (let y = 0; y < board.height; y++) {
-      for (let x = 0; x < board.width; x++) {
-        if (board.entities[y][x] === EntityType.BOX) {
-          this._addBox(x, y, board.tiles[y][x] === TileType.TARGET);
-        }
+    for (const key of needed) {
+      if (!this.boxMeshes[key]) {
+        const [x, y] = key.split(',').map(Number);
+        this._addBox(x, y, board.tiles[y][x] === TileType.TARGET);
       }
     }
   }
@@ -90,8 +100,10 @@ export class BoardRenderer {
     const mesh = this.boxMeshes[key];
     if (!mesh) return;
     delete this.boxMeshes[key];
+    this.boxMeshes[`${toX},${toY}`] = mesh;
     const sx = fromX * TILE_SIZE, sz = fromY * TILE_SIZE;
     const tx = toX * TILE_SIZE, tz = toY * TILE_SIZE;
+    const onTarget = board.tiles[toY][toX] === TileType.TARGET;
     const start = performance.now();
     const anim = () => {
       const t = Math.min((performance.now() - start) / MOVE_LERP_DURATION, 1);
@@ -99,14 +111,7 @@ export class BoardRenderer {
       mesh.position.x = sx + (tx - sx) * e;
       mesh.position.z = sz + (tz - sz) * e;
       if (t < 1) requestAnimationFrame(anim);
-      else {
-        this.group.remove(mesh);
-        if (mesh.geometry) mesh.geometry.dispose();
-        if (mesh.material) {
-          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-          mats.forEach(m => m.dispose());
-        }
-      }
+      else this._replaceBox(toX, toY, onTarget);
     };
     anim();
   }
@@ -149,9 +154,12 @@ export class BoardRenderer {
       if (child.geometry) child.geometry.dispose();
       if (child.material) {
         const mats = Array.isArray(child.material) ? child.material : [child.material];
-        mats.forEach(m => m.dispose());
+        mats.forEach(m => { if (m.map) m.map.dispose(); m.dispose(); });
       }
     });
     this.scene.remove(this.group);
+    this.boxMeshes = {};
+    this.wallMeshes = [];
+    this.targetMeshes = [];
   }
 }

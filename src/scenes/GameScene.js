@@ -94,6 +94,9 @@ export class GameScene {
 
   deactivate() {
     this.active = false;
+    if (this._winTimer) { clearTimeout(this._winTimer); this._winTimer = null; }
+    if (this._winKeyHandler) { window.removeEventListener('keydown', this._winKeyHandler); this._winKeyHandler = null; }
+    this._winData = null;
     this.inputHandler.destroy();
     this.hud.hide();
     this.boardRenderer.dispose();
@@ -109,6 +112,11 @@ export class GameScene {
   }
 
   _loadLevel(levelId) {
+    // Clean up previous level
+    if (this._winTimer) { clearTimeout(this._winTimer); this._winTimer = null; }
+    if (this._winKeyHandler) { window.removeEventListener('keydown', this._winKeyHandler); this._winKeyHandler = null; }
+    this._winData = null;
+
     const level = this.levelManager.getLevel(levelId);
     if (!level) return;
     this.board.loadLevel(level);
@@ -171,7 +179,7 @@ export class GameScene {
 
     // Update board visuals after animation
     setTimeout(() => {
-      this.boardRenderer.updateBoard(this.board);
+      if (result !== MoveResult.PUSHED) this.boardRenderer.updateBoard(this.board);
       this.playerRenderer.setMoving(false);
       if (this.board.isComplete()) this._onWin();
     }, 160);
