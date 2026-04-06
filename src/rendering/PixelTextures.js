@@ -30,6 +30,14 @@ function _drawTape(ctx, color = 'rgba(60,30,5,0.7)') {
   ctx.fillRect(0, cy - tw / 2, S, tw);
 }
 
+function _drawLabel(ctx) {
+  const lw = 34, lh = 22, lx = (S - lw) / 2, ly = (S - lh) / 2 + 8;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(lx, ly, lw, lh);
+  ctx.fillStyle = '#bbb';
+  for (let i = 0; i < 4; i++) ctx.fillRect(lx + 3, ly + 4 + i * 5, lw - 6, 2);
+}
+
 export class PixelTextures {
   static getWallTexture() {
     if (cache.wall) return cache.wall;
@@ -120,6 +128,36 @@ export class PixelTextures {
         }
     });
     return cache.boxDark;
+  }
+
+  static getBoxLabelTexture() {
+    if (cache.boxLabel) return cache.boxLabel;
+    cache.boxLabel = createTexture(ctx => {
+      ctx.fillStyle = '#8B5E3C';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 20);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.15})`; ctx.fillRect(x, y, 1, 1); }
+        }
+      _drawLabel(ctx);
+    });
+    return cache.boxLabel;
+  }
+
+  static getBoxOnTargetLabelTexture() {
+    if (cache.boxTargetLabel) return cache.boxTargetLabel;
+    cache.boxTargetLabel = createTexture(ctx => {
+      ctx.fillStyle = '#4C944C';
+      ctx.fillRect(0, 0, S, S);
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const n = noise(x, y, 23);
+          if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.15})`; ctx.fillRect(x, y, 1, 1); }
+        }
+      _drawLabel(ctx);
+    });
+    return cache.boxTargetLabel;
   }
 
   static getBoxOnTargetTexture() {

@@ -39,8 +39,10 @@ export class TileFactory {
     const matSide = new THREE.MeshLambertMaterial({ map: side });
     const matTop = new THREE.MeshLambertMaterial({ map: top });
     const matDark = new THREE.MeshLambertMaterial({ map: dark });
+    const label = onTarget ? PixelTextures.getBoxOnTargetLabelTexture() : PixelTextures.getBoxLabelTexture();
+    const matLabel = new THREE.MeshLambertMaterial({ map: label });
     // BoxGeometry face order: +x, -x, +y, -y, +z, -z
-    const mesh = new THREE.Mesh(geo, [matDark, matSide, matTop, matTop, matSide, matDark]);
+    const mesh = new THREE.Mesh(geo, [matDark, matSide, matTop, matTop, matLabel, matDark]);
     mesh.position.y = BOX_SIZE / 2;
     return mesh;
   }
