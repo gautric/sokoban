@@ -3,107 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sokoban - Game Objects Design</title>
+  <title>Sokoban - Design Board</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #1a1a2e; color: #eee; font-family: 'Courier New', monospace; padding: 40px; }
-    h1 { text-align: center; margin-bottom: 40px; color: #7B61FF; font-size: 2em; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 30px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .card {
-      background: #16213e;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      border: 2px solid #0f3460;
-    }
-    .card h2 { color: #7B61FF; margin-bottom: 15px; font-size: 1.1em; }
-    .card canvas { border-radius: 8px; display: block; margin: 0 auto; }
-    .card p { margin-top: 10px; font-size: 0.85em; color: #aaa; }
+    body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    canvas { display: block; }
   </style>
 </head>
 <body>
-  <h1>🎮 Sokoban — Game Objects</h1>
-  <div class="grid" id="grid"></div>
-
+  <div id="container"></div>
   <script type="importmap">
-    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
   </script>
   <script type="module">
     import * as THREE from 'three';
-    import { TileFactory } from './src/rendering/TileFactory.js';
-    import { TILE_SIZE, WALL_HEIGHT, BOX_SIZE } from './src/config.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { BoardRenderer } from './src/rendering/BoardRenderer.js';
+    import { PlayerRenderer } from './src/rendering/PlayerRenderer.js';
+    import { IsometricCamera } from './src/rendering/IsometricCamera.js';
+    import { PIXEL_SIZE_DEFAULT } from './src/config.js';
 
-    const S = 200;
-
-    function renderMesh(mesh, camOpts = {}) {
-      const scene = new THREE.Scene();
-      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-      dir.position.set(2, 3, 2);
-      scene.add(dir);
-      scene.add(mesh);
-
-      const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 10);
-      const d = camOpts.dist || 2.5;
-      const y = camOpts.y || 1.5;
-      cam.position.set(d, y, d);
-      cam.lookAt(mesh.position.clone().add(new THREE.Vector3(0, camOpts.lookY || 0, 0)));
-
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(S, S);
-      renderer.setClearColor(0x000000, 0);
-      renderer.render(scene, cam);
-      return renderer.domElement;
-    }
-
-    function card(title, desc, canvas) {
-      const div = document.createElement('div');
-      div.className = 'card';
-      const h2 = document.createElement('h2');
-      h2.textContent = title;
-      const p = document.createElement('p');
-      p.textContent = desc;
-      div.appendChild(h2);
-      div.appendChild(canvas);
-      div.appendChild(p);
-      document.getElementById('grid').appendChild(div);
-    }
-
-    // Player
-    const playerCard = () => {
-      const c = document.createElement('canvas');
-      c.width = c.height = S;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#222';
-      ctx.fillRect(0, 0, S, S);
-      const img = new Image();
-      img.onload = () => ctx.drawImage(img, S * 0.15, S * 0.05, S * 0.7, S * 0.9);
-      img.src = 'assets/ghost.svg';
-      card('Player', 'Ghost sprite (SVG)', c);
+    // Fake board: row of items — wall, box, greenBox, target, player
+    // Layout (7 wide x 3 tall, padded with floors):
+    //   F F F F F F F F F F F
+    //   F W F B F G F T F . F
+    //   F F F F F F F F F F F
+    const W=1, F=2, T=3; // TileType: WALL=1, FLOOR=2, TARGET=3
+    const E=0, B=2; // EntityType: NONE=0, BOX=2
+    const fakeBoard = {
+      width: 11, height: 3,
+      tiles: [
+        [F,F,F,F,F,F,F,F,F,F,F],
+        [F,W,F,F,F,F,F,T,F,F,F],
+        [F,F,F,F,F,F,F,F,F,F,F],
+      ],
+      entities: [
+        [E,E,E,E,E,E,E,E,E,E,E],
+        [E,E,E,B,E,B,E,E,E,E,E],
+        [E,E,E,E,E,E,E,E,E,E,E],
+      ],
+      playerPos: { x: 9, y: 1 },
+      getTile(x, y) { return this.tiles[y]?.[x]; },
     };
+    // Box at (5,1) is on a target-like position — override tile for green box
+    fakeBoard.tiles[1][5] = T;
 
-    // Floor
-    card('Floor', 'Stone floor tile', renderMesh(TileFactory.createFloor(), { dist: 1.2, y: 1.5, lookY: 0 }));
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a2e);
 
-    // Wall
-    card('Wall', 'Brick wall (side + top)', renderMesh(TileFactory.createWall(), { dist: 2, y: 1.5, lookY: 0.4 }));
+    // Lighting — same as GameScene
+    scene.add(new THREE.AmbientLight(0xFFE8CC, 0.5));
+    const dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(1024, 1024);
+    dirLight.shadow.camera.near = 0.1;
+    dirLight.shadow.camera.far = 50;
+    dirLight.shadow.camera.left = -15;
+    dirLight.shadow.camera.right = 15;
+    dirLight.shadow.camera.top = 15;
+    dirLight.shadow.camera.bottom = -15;
+    scene.add(dirLight);
+    scene.add(dirLight.target);
 
-    // Box
-    card('Box', 'Brown crate — 3 tone faces', renderMesh(TileFactory.createBox(false), { dist: 1.8, y: 1.2, lookY: 0.3 }));
+    // Reuse game renderers
+    const boardRenderer = new BoardRenderer(scene);
+    boardRenderer.buildBoard(fakeBoard);
 
-    // Green Box (on target)
-    card('Green Box', 'Box on target — green tint', renderMesh(TileFactory.createBox(true), { dist: 1.8, y: 1.2, lookY: 0.3 }));
+    const playerRenderer = new PlayerRenderer(scene);
+    playerRenderer.init();
+    playerRenderer.setPosition(fakeBoard.playerPos.x, fakeBoard.playerPos.y);
 
-    // Target floor
-    card('Green Floor', 'Target tile', renderMesh(TileFactory.createTarget(), { dist: 1.2, y: 1.5, lookY: 0 }));
+    // Camera
+    const isoCamera = new IsometricCamera();
+    isoCamera.init(fakeBoard.width, fakeBoard.height);
+    isoCamera.tiltDeg *= 0.72;
+    isoCamera.zoomPercent = 44;
+    isoCamera._updateCameraPosition();
 
-    playerCard();
+    // Renderer + pixelation
+    const renderer = new THREE.WebGLRenderer({ antialias: false });
+    renderer.shadowMap.enabled = true;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(1);
+    document.getElementById('container').appendChild(renderer.domElement);
+
+    const composer = new EffectComposer(renderer);
+    const pixelPass = new RenderPixelatedPass(PIXEL_SIZE_DEFAULT, scene, isoCamera.getCamera());
+    pixelPass.normalEdgeStrength = 0.3;
+    pixelPass.depthEdgeStrength = 0.4;
+    composer.addPass(pixelPass);
+    composer.addPass(new OutputPass());
+
+    function updateLight() {
+      const a = THREE.MathUtils.degToRad(isoCamera.getRotationAngle() + 45 - 90);
+      const c = isoCamera.center;
+      dirLight.position.set(c.x + Math.sin(a) * 10, 10, c.z + Math.cos(a) * 10);
+      dirLight.target.position.copy(c);
+    }
+    updateLight();
+
+    // Space to rotate
+    window.addEventListener('keydown', (e) => {
+      if (e.key === ' ') { e.preventDefault(); isoCamera.rotateRight(); }
+    });
+
+    // Animate
+    let last = performance.now();
+    function animate() {
+      const now = performance.now();
+      const dt = now - last;
+      last = now;
+      isoCamera.update(dt);
+      playerRenderer.update(dt);
+      playerRenderer.setCameraAngle(isoCamera.getRotationAngle(), isoCamera.getCamera());
+      updateLight();
+      pixelPass.camera = isoCamera.getCamera();
+      composer.render();
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+    });
   </script>
 </body>
 </html>
