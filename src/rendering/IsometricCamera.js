@@ -21,20 +21,14 @@ export class IsometricCamera {
     this.baseSize = Math.max(boardWidth, boardHeight) / 2 + BOARD_PADDING;
     this.center.set(boardWidth / 2 - 0.5, 0, boardHeight / 2 - 0.5);
     const aspect = window.innerWidth / window.innerHeight;
-    const s = this.baseSize;
-    this.camera = new THREE.OrthographicCamera(-s * aspect, s * aspect, s, -s, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
     this._updateCameraPosition();
     window.addEventListener('resize', () => this._onResize());
   }
 
   _onResize() {
     if (!this.camera) return;
-    const aspect = window.innerWidth / window.innerHeight;
-    const s = this._effectiveSize();
-    this.camera.left = -s * aspect;
-    this.camera.right = s * aspect;
-    this.camera.top = s;
-    this.camera.bottom = -s;
+    this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
   }
 
@@ -46,14 +40,14 @@ export class IsometricCamera {
     if (!this.camera) return;
     const angle = THREE.MathUtils.degToRad(this.currentRotation + 45);
     const tilt = THREE.MathUtils.degToRad(this.tiltDeg);
-    const dist = 50;
+    const dist = this._effectiveSize() * 2.4;
     this.camera.position.set(
       this.center.x + Math.sin(angle) * Math.cos(tilt) * dist,
       this.center.y + Math.sin(tilt) * dist,
       this.center.z + Math.cos(angle) * Math.cos(tilt) * dist
     );
     this.camera.lookAt(this.center);
-    this._onResize();
+    this.camera.updateProjectionMatrix();
   }
 
   rotateLeft() {
