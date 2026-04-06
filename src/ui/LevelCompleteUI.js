@@ -16,9 +16,9 @@ export class LevelCompleteUI {
 
   _buildOnce() {
     if (this._built) return;
-    this.btns.appendChild(PixelButton.create('Next Level', () => { this.hide(); this.callbacks.onNext?.(); }));
-    this.btns.appendChild(PixelButton.create('Replay', () => { this.hide(); this.callbacks.onReplay?.(); }));
-    this.btns.appendChild(PixelButton.create('Level Select', () => { this.hide(); this.callbacks.onLevelSelect?.(); }));
+    this.btns.appendChild(PixelButton.create('next_level', () => { this.hide(); this.callbacks.onNext?.(); }));
+    this.btns.appendChild(PixelButton.create('replay', () => { this.hide(); this.callbacks.onReplay?.(); }));
+    this.btns.appendChild(PixelButton.create('level_select', () => { this.hide(); this.callbacks.onLevelSelect?.(); }));
     this._built = true;
   }
 
@@ -32,7 +32,6 @@ export class LevelCompleteUI {
     this.pushesEl.textContent = pushes;
     this.timeEl.textContent = `${m}:${s}`;
 
-    // Spawn confetti
     this.confetti.replaceChildren();
     const colors = ['#7B61FF', '#FF6B6B', '#4CAF50', '#FFD700', '#00BCD4'];
     for (let i = 0; i < 30; i++) {

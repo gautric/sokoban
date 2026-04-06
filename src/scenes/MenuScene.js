@@ -12,9 +12,9 @@ export class MenuScene {
   _build() {
     if (this._built) return;
     const btns = this.el.querySelector('.menu-buttons');
-    btns.appendChild(PixelButton.create('Play', () => this.sceneManager.switchTo('game', 0)));
-    btns.appendChild(PixelButton.create('Level Select', () => this.sceneManager.switchTo('levelSelect')));
-    btns.appendChild(PixelButton.create('How to Play', () => {
+    btns.appendChild(PixelButton.create('play', () => this.sceneManager.switchTo('game', 0)));
+    btns.appendChild(PixelButton.create('level_select', () => this.sceneManager.switchTo('levelSelect')));
+    btns.appendChild(PixelButton.create('how_to_play', () => {
       this.modal.style.display = this.modal.style.display === 'none' ? 'block' : 'none';
     }));
     this._built = true;

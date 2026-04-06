@@ -20,7 +20,7 @@ export class LevelSelectScene {
     if (this._built) return;
     this.prevBtn.addEventListener('click', () => { this.page--; this._renderGrid(); });
     this.nextBtn.addEventListener('click', () => { this.page++; this._renderGrid(); });
-    this.backContainer.appendChild(PixelButton.create('Back', () => this.sceneManager.switchTo('menu')));
+    this.backContainer.appendChild(PixelButton.create('back', () => this.sceneManager.switchTo('menu')));
     this._built = true;
   }
 
@@ -66,7 +66,6 @@ export class LevelSelectScene {
       this.grid.appendChild(tile);
     }
 
-    // Pagination
     if (totalPages > 1) {
       this.nav.style.display = 'flex';
       this.prevBtn.style.display = this.page > 0 ? '' : 'none';

@@ -7,6 +7,7 @@ import { SceneManager } from './scenes/SceneManager.js';
 import { MenuScene } from './scenes/MenuScene.js';
 import { LevelSelectScene } from './scenes/LevelSelectScene.js';
 import { GameScene } from './scenes/GameScene.js';
+import { toggleLang } from './i18n.js';
 
 async function init() {
   // Renderer
@@ -54,6 +55,11 @@ async function init() {
 
   // Start
   sceneManager.switchTo('menu');
+
+  // Global language toggle (J key works on all screens)
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'j' || e.key === 'J') toggleLang();
+  });
 
   // Game loop
   let lastTime = performance.now();

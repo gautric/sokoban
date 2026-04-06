@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kiro's Ghost Sokoban</title>
+  <title>キロのゴースト倉庫番</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,55 +12,56 @@
 
       <!-- Menu Screen -->
       <div id="menu-screen">
-        <h1 class="game-title">Kiro's Ghost<br>Sokoban</h1>
+        <h1 class="game-title" data-i18n="title">キロのゴースト<br>倉庫番</h1>
         <div class="menu-ghost" data-testid="menu-ghost"><img src="assets/ghostv2.svg" alt="Kiro Ghost" class="menu-ghost-img"></div>
         <div class="menu-buttons"></div>
         <div class="how-to-play-modal" id="how-to-play" style="display:none">
-          <h3>HOW TO PLAY</h3>
-          <p>Push all boxes onto targets!</p>
-          <p>Arrows: Move</p>
-          <p>Q/E: Rotate camera</p>
-          <p>Z: Undo | R: Restart</p>
-          <p>M: Mute | Esc: Pause</p>
-          <p>Mouse: Drag to rotate, Scroll to zoom</p>
+          <h3 data-i18n="how_title">遊び方</h3>
+          <p data-i18n="how_1">箱をすべてターゲットに押そう！</p>
+          <p data-i18n="how_2">矢印キー: 移動</p>
+          <p data-i18n="how_3">Q/E: カメラ回転</p>
+          <p data-i18n="how_4">Z: 元に戻す | R: リスタート</p>
+          <p data-i18n="how_5">M: ミュート | Esc: ポーズ</p>
+          <p data-i18n="how_6">マウス: ドラッグで回転、スクロールでズーム</p>
+          <p data-i18n="how_7">J: 日本語 / English</p>
         </div>
       </div>
 
       <!-- Level Select Screen -->
       <div id="level-select-screen">
-        <h2>SELECT LEVEL</h2>
+        <h2 data-i18n="select_level">レベル選択</h2>
         <div class="level-grid"></div>
         <div class="level-nav" style="display:none">
-          <button class="pixel-btn" id="level-prev" data-testid="btn-<-prev">&lt; Prev</button>
+          <button class="pixel-btn" id="level-prev" data-i18n="prev" data-testid="btn-<-prev">&lt; 前へ</button>
           <span class="page-label" id="level-page-label"></span>
-          <button class="pixel-btn" id="level-next" data-testid="btn-next->">Next &gt;</button>
+          <button class="pixel-btn" id="level-next" data-i18n="next" data-testid="btn-next->">次へ &gt;</button>
         </div>
         <div class="level-select-back"></div>
       </div>
 
       <!-- HUD -->
       <div id="hud">
-        <div class="hud-row"><span class="hud-label">Level:</span> <span id="hud-level">-</span></div>
-        <div class="hud-row"><span class="hud-label">Moves:</span> <span id="hud-moves">0</span></div>
-        <div class="hud-row"><span class="hud-label">Pushes:</span> <span id="hud-pushes">0</span></div>
-        <div class="hud-row"><span class="hud-label">Time:</span> <span id="hud-timer">00:00</span></div>
-        <div class="hud-row"><span class="hud-label">Music:</span> <span id="hud-music" class="hud-toggle" data-testid="btn-music-toggle">ON</span></div>
+        <div class="hud-row"><span class="hud-label" data-i18n="level">レベル:</span> <span id="hud-level">-</span></div>
+        <div class="hud-row"><span class="hud-label" data-i18n="moves">手数:</span> <span id="hud-moves">0</span></div>
+        <div class="hud-row"><span class="hud-label" data-i18n="pushes">押し:</span> <span id="hud-pushes">0</span></div>
+        <div class="hud-row"><span class="hud-label" data-i18n="time">時間:</span> <span id="hud-timer">00:00</span></div>
+        <div class="hud-row"><span class="hud-label" data-i18n="music">音楽:</span> <span id="hud-music" class="hud-toggle" data-testid="btn-music-toggle">オン</span></div>
       </div>
 
       <!-- Pause Menu -->
       <div id="pause-menu">
-        <h2>PAUSED</h2>
+        <h2 data-i18n="paused">ポーズ中</h2>
         <div class="pause-buttons"></div>
       </div>
 
       <!-- Level Complete -->
       <div id="level-complete">
-        <h2>LEVEL COMPLETE!</h2>
+        <h2 data-i18n="level_complete">レベルクリア！</h2>
         <div class="stars" id="complete-stars"></div>
         <div class="stats">
-          <div>Moves: <span id="complete-moves"></span></div>
-          <div>Pushes: <span id="complete-pushes"></span></div>
-          <div>Time: <span id="complete-time"></span></div>
+          <div><span data-i18n="complete_moves">手数:</span> <span id="complete-moves"></span></div>
+          <div><span data-i18n="complete_pushes">押し:</span> <span id="complete-pushes"></span></div>
+          <div><span data-i18n="complete_time">時間:</span> <span id="complete-time"></span></div>
         </div>
         <div class="confetti-container" data-testid="confetti"></div>
         <div class="complete-buttons"></div>

@@ -5,10 +5,10 @@ export class PauseMenu {
     this.el = document.getElementById('pause-menu');
     this.visible = false;
     const btns = this.el.querySelector('.pause-buttons');
-    btns.appendChild(PixelButton.create('Resume', () => { this.hide(); callbacks.onResume?.(); }));
-    btns.appendChild(PixelButton.create('Restart', () => { this.hide(); callbacks.onRestart?.(); }));
-    btns.appendChild(PixelButton.create('Level Select', () => { this.hide(); callbacks.onLevelSelect?.(); }));
-    btns.appendChild(PixelButton.create('Main Menu', () => { this.hide(); callbacks.onMainMenu?.(); }));
+    btns.appendChild(PixelButton.create('resume', () => { this.hide(); callbacks.onResume?.(); }));
+    btns.appendChild(PixelButton.create('restart', () => { this.hide(); callbacks.onRestart?.(); }));
+    btns.appendChild(PixelButton.create('level_select', () => { this.hide(); callbacks.onLevelSelect?.(); }));
+    btns.appendChild(PixelButton.create('main_menu', () => { this.hide(); callbacks.onMainMenu?.(); }));
   }
 
   show() { this.el.style.display = 'flex'; this.visible = true; }

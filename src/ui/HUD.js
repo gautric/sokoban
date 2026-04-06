@@ -1,3 +1,5 @@
+import { t, onLangChange } from '../i18n.js';
+
 export class HUD {
   constructor(onMusicToggle) {
     this.el = document.getElementById('hud');
@@ -6,10 +8,14 @@ export class HUD {
     this.pushesEl = document.getElementById('hud-pushes');
     this.timerEl = document.getElementById('hud-timer');
     this.musicBtn = document.getElementById('hud-music');
+    this._musicOn = true;
+    this.musicBtn.textContent = t('on');
     this.musicBtn.addEventListener('click', () => {
       onMusicToggle?.();
-      this.musicBtn.textContent = this.musicBtn.textContent === 'ON' ? 'OFF' : 'ON';
+      this._musicOn = !this._musicOn;
+      this.musicBtn.textContent = t(this._musicOn ? 'on' : 'off');
     });
+    onLangChange(() => { this.musicBtn.textContent = t(this._musicOn ? 'on' : 'off'); });
     this.startTime = 0;
     this.running = false;
     this.elapsed = 0;
