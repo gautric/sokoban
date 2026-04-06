@@ -275,7 +275,7 @@ export class GameScene {
     this.dirLight.position.set(center.x + Math.sin(angle) * 10, 10, center.z + Math.cos(angle) * 10);
     this.dirLight.target.position.copy(center);
     this.playerRenderer.update(dt);
-    this.playerRenderer.setCameraAngle(this.isoCamera.getRotationAngle());
+    this.playerRenderer.setCameraAngle(this.isoCamera.getRotationAngle(), this.isoCamera.getCamera());
     this.boardRenderer.updateOcclusion(this.board.playerPos, this.isoCamera.getCamera());
     this.boardRenderer.updateOcclusionTween(dt);
     this.boardRenderer.updateTargetPulse(performance.now() / 1000);

@@ -12,6 +12,7 @@ export class PlayerRenderer {
     this.gridX = 0;
     this.gridY = 0;
     this._animating = false;
+    this._camera = null;
   }
 
   init() {
@@ -46,11 +47,11 @@ export class PlayerRenderer {
       img.src = 'assets/ghostv2.svg';
     };
 
-    // Ghost sprite with violet border
+    // Ghost mesh (plane, billboarded manually for 3D rotation)
     loadSVGTexture((tex) => {
-      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-      this.sprite = new THREE.Sprite(mat);
-      this.sprite.scale.set(1.05, 1.05, 1.05);
+      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+      const geo = new THREE.PlaneGeometry(1.05, 1.05);
+      this.sprite = new THREE.Mesh(geo, mat);
       this.sprite.position.y = 0.6;
       this.sprite.position.x = this.gridX * TILE_SIZE;
       this.sprite.position.z = this.gridY * TILE_SIZE;
@@ -96,13 +97,13 @@ export class PlayerRenderer {
 
   isAnimating() { return this._animating; }
 
-  setCameraAngle(angleDeg) {
+  setCameraAngle(angleDeg, camera) {
+    this._camera = camera;
   }
 
   setDirection(dir) {
     if (!this.sprite) return;
-    this.sprite.material.rotation = 0;
-    if (dir === Direction.LEFT) this.sprite.scale.x = -1;
+    if (dir === Direction.LEFT || dir === Direction.DOWN) this.sprite.scale.x = -1;
     else this.sprite.scale.x = 1;
   }
 
@@ -123,6 +124,7 @@ export class PlayerRenderer {
   _stopCelebration() {
     this._celebrating = false;
     if (this.sprite) this.sprite.material.color.set(0xffffff);
+    this._celebSpin = 0;
     if (this._neonLight) { this.scene.remove(this._neonLight); this._neonLight = null; }
   }
 
@@ -133,6 +135,12 @@ export class PlayerRenderer {
     // Bobbing
     const bob = Math.sin((this.elapsed / PLAYER_BOB_PERIOD) * Math.PI * 2) * PLAYER_BOB_AMPLITUDE;
     this.sprite.position.y = 0.6 + bob;
+
+    // Billboard toward camera + celebration spin
+    if (this._camera) {
+      this.sprite.lookAt(this._camera.position);
+      if (this._celebSpin) this.sprite.rotateY(this._celebSpin);
+    }
 
     // Sync shadow caster
     if (this.shadowCaster) {
@@ -153,6 +161,9 @@ export class PlayerRenderer {
         // Pulse sprite brightness
         const glow = 0.6 + intensity * 0.1;
         this.sprite.material.color.setRGB(glow * 0.48, glow * 0.38, glow);
+        // Spin 3 times in 1.5s around Y axis
+        const spin = Math.min(t / 1.5, 1) * Math.PI * 2 * 3;
+        this._celebSpin = spin;
     }
 
     // Particles
@@ -226,6 +237,7 @@ export class PlayerRenderer {
       this.scene.remove(this.sprite);
       if (this.sprite.material.map) this.sprite.material.map.dispose();
       this.sprite.material.dispose();
+      this.sprite.geometry.dispose();
       this.sprite = null;
     }
     if (this.shadowCaster) {
