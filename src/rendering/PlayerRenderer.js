@@ -6,7 +6,6 @@ export class PlayerRenderer {
   constructor(scene) {
     this.scene = scene;
     this.sprite = null;
-    this.shadow = null;
     this.particles = [];
     this.elapsed = 0;
     this.moving = false;
@@ -44,30 +43,14 @@ export class PlayerRenderer {
       this.sprite.position.x = this.gridX * TILE_SIZE;
       this.sprite.position.z = this.gridY * TILE_SIZE;
       this.scene.add(this.sprite);
-    });
 
-    // Shadow using SVG
-    loadSVGTexture((tex) => {
-      const shadowMat = new THREE.MeshBasicMaterial({
-        map: tex, color: 0x000000, transparent: true, opacity: 0.3,
-        depthWrite: false, alphaTest: 0.1,
-      });
-      const shadowGeo = new THREE.PlaneGeometry(0.6, 0.6);
-      this.shadow = new THREE.Mesh(shadowGeo, shadowMat);
-      this.shadow.rotation.x = -Math.PI / 2;
-      this.shadow.rotation.z = Math.PI / 4;
-      this.shadow.scale.set(1, 0.6, 1);
-      this.shadow.position.y = 0.003;
-      this._shadowOff = { x: 0.2, z: 0.2 };
-      this._updateShadowPos(this.gridX * TILE_SIZE, this.gridY * TILE_SIZE);
-      this.scene.add(this.shadow);
+      // Shadow caster using same texture
+      const shadowMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, colorWrite: false });
+      const shadowGeo = new THREE.PlaneGeometry(1, 1);
+      this.shadowCaster = new THREE.Mesh(shadowGeo, shadowMat);
+      this.shadowCaster.castShadow = true;
+      this.scene.add(this.shadowCaster);
     });
-  }
-
-  _updateShadowPos(wx, wz) {
-    if (!this.shadow) return;
-    this.shadow.position.x = wx + this._shadowOff.x;
-    this.shadow.position.z = wz + this._shadowOff.z;
   }
 
   setPosition(x, y, animated = false) {
@@ -77,7 +60,6 @@ export class PlayerRenderer {
       this._animateToPosition(wx, wz);
     } else {
       if (this.sprite) { this.sprite.position.x = wx; this.sprite.position.z = wz; }
-      this._updateShadowPos(wx, wz);
     }
     this.gridX = x;
     this.gridY = y;
@@ -92,8 +74,6 @@ export class PlayerRenderer {
       const e = t * (2 - t);
       this.sprite.position.x = sx + (tx - sx) * e;
       this.sprite.position.z = sz + (tz - sz) * e;
-      this.shadow.position.x = this.sprite.position.x + this._shadowOff.x;
-      this.shadow.position.z = this.sprite.position.z + this._shadowOff.z;
       if (t < 1) requestAnimationFrame(anim);
       else this._animating = false;
     };
@@ -103,9 +83,6 @@ export class PlayerRenderer {
   isAnimating() { return this._animating; }
 
   setCameraAngle(angleDeg) {
-    if (this.shadow) {
-      this.shadow.rotation.z = THREE.MathUtils.degToRad(angleDeg + 45);
-    }
   }
 
   setDirection(dir) {
@@ -142,6 +119,12 @@ export class PlayerRenderer {
     // Bobbing
     const bob = Math.sin((this.elapsed / PLAYER_BOB_PERIOD) * Math.PI * 2) * PLAYER_BOB_AMPLITUDE;
     this.sprite.position.y = 0.6 + bob;
+
+    // Sync shadow caster
+    if (this.shadowCaster) {
+      this.shadowCaster.position.copy(this.sprite.position);
+      this.shadowCaster.lookAt(this.shadowCaster.position.x, this.shadowCaster.position.y, this.shadowCaster.position.z - 1);
+    }
 
     // Win celebration: heartbeat neon for 5s
     if (this._celebrating) {
@@ -229,12 +212,11 @@ export class PlayerRenderer {
       this.sprite.material.dispose();
       this.sprite = null;
     }
-    if (this.shadow) {
-      this.scene.remove(this.shadow);
-      if (this.shadow.material.map) this.shadow.material.map.dispose();
-      this.shadow.material.dispose();
-      this.shadow.geometry.dispose();
-      this.shadow = null;
+    if (this.shadowCaster) {
+      this.scene.remove(this.shadowCaster);
+      this.shadowCaster.geometry.dispose();
+      this.shadowCaster.material.dispose();
+      this.shadowCaster = null;
     }
     for (const p of this.particles) {
       this.scene.remove(p.mesh);
