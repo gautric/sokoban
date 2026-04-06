@@ -155,6 +155,7 @@ export class GameScene {
     this.isoCamera.zoomPercent = 0;
     this.minimap.init(this.board.width, this.board.height);
     this.inputHandler.setRotationStep(this.isoCamera.getRotationStep());
+    this.playerRenderer.setRotationStep(this.isoCamera.getRotationStep());
     this.zoomIndicator.setZoom(0);
 
     this.hud.reset(level.title);
@@ -224,6 +225,7 @@ export class GameScene {
     if (dir < 0) this.isoCamera.rotateLeft();
     else this.isoCamera.rotateRight();
     this.inputHandler.setRotationStep(this.isoCamera.getRotationStep());
+    this.playerRenderer.setRotationStep(this.isoCamera.getRotationStep());
   }
 
   _togglePause() {

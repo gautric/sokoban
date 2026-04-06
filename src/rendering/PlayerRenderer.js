@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TILE_SIZE, PLAYER_BOB_AMPLITUDE, PLAYER_BOB_PERIOD, PARTICLE_COLOR, PARTICLE_LIFETIME, PARTICLE_SPAWN_RATE_IDLE, PARTICLE_SPAWN_RATE_MOVING, MOVE_LERP_DURATION } from '../config.js';
+import { TILE_SIZE, PLAYER_BOB_AMPLITUDE, PLAYER_BOB_PERIOD, PARTICLE_COLOR, PARTICLE_LIFETIME, PARTICLE_SPAWN_RATE_IDLE, PARTICLE_SPAWN_RATE_MOVING, MOVE_LERP_DURATION, ROTATION_MAP } from '../config.js';
 import { Direction } from '../config.js';
 
 export class PlayerRenderer {
@@ -101,11 +101,18 @@ export class PlayerRenderer {
     this._camera = camera;
   }
 
-  setDirection(dir) {
+  setDirection(boardDir) {
     if (!this.sprite) return;
-    if (dir === Direction.LEFT || dir === Direction.DOWN) this.sprite.scale.x = -1;
+    // Find which screen direction maps to this board direction
+    const step = this._rotationStep || 0;
+    const map = ROTATION_MAP[step];
+    let screenDir = boardDir;
+    for (let i = 0; i < 4; i++) { if (map[i] === boardDir) { screenDir = i; break; } }
+    if (screenDir === Direction.LEFT || screenDir === Direction.DOWN) this.sprite.scale.x = -1;
     else this.sprite.scale.x = 1;
   }
+
+  setRotationStep(step) { this._rotationStep = step; }
 
   setMoving(isMoving) { this.moving = isMoving; }
 
