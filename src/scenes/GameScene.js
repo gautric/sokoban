@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Board } from '../core/Board.js';
-import { MoveResult, TILE_SIZE } from '../config.js';
+import { MoveResult, TILE_SIZE, PIXEL_SIZE_DEFAULT, PIXEL_SIZE_MIN, PIXEL_SIZE_MAX, PIXEL_SIZE_STEP } from '../config.js';
 import { IsometricCamera } from '../rendering/IsometricCamera.js';
 import { BoardRenderer } from '../rendering/BoardRenderer.js';
 import { PlayerRenderer } from '../rendering/PlayerRenderer.js';
@@ -42,7 +42,7 @@ export class GameScene {
     this.firstMove = false;
     this.composer = null;
     this.pixelPass = null;
-    this.pixelSize = 4;
+    this.pixelSize = PIXEL_SIZE_DEFAULT;
 
     // Lighting
     const ambient = new THREE.AmbientLight(0xFFE8CC, 0.5);
@@ -294,7 +294,7 @@ export class GameScene {
   }
 
   setPixelSize(delta) {
-    this.pixelSize = Math.max(1, Math.min(16, this.pixelSize + delta));
+    this.pixelSize = Math.max(PIXEL_SIZE_MIN, Math.min(PIXEL_SIZE_MAX, this.pixelSize + delta * PIXEL_SIZE_STEP));
     if (this.pixelPass) this.pixelPass.setPixelSize(this.pixelSize);
   }
 

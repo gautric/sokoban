@@ -156,7 +156,7 @@ export class PlayerRenderer {
     }
 
     // Particles
-    const rate = this._celebrating ? PARTICLE_SPAWN_RATE_MOVING * 3 : (this.moving ? PARTICLE_SPAWN_RATE_MOVING : PARTICLE_SPAWN_RATE_IDLE);
+    const rate = this._celebrating ? PARTICLE_SPAWN_RATE_MOVING * 3.3 : (this.moving ? PARTICLE_SPAWN_RATE_MOVING : PARTICLE_SPAWN_RATE_IDLE);
     for (let i = 0; i < rate; i++) {
       this._spawnParticle();
     }
@@ -166,16 +166,18 @@ export class PlayerRenderer {
   _spawnParticle() {
     const angle = Math.random() * Math.PI * 2;
     const r = 0.2 + Math.random() * 0.15;
+    const spd = this._celebrating ? 1.1 : 1;
+    const life = this._celebrating ? PARTICLE_LIFETIME * 1.25 : PARTICLE_LIFETIME;
     const p = {
       mesh: this._createParticleMesh(),
       x: this.sprite.position.x + Math.cos(angle) * r,
       y: this.sprite.position.y + (Math.random() - 0.5) * 0.3,
       z: this.sprite.position.z + Math.sin(angle) * r,
-      vx: Math.cos(angle) * 0.3,
-      vy: 0.2 + Math.random() * 0.2,
-      vz: Math.sin(angle) * 0.3,
-      life: PARTICLE_LIFETIME,
-      maxLife: PARTICLE_LIFETIME,
+      vx: Math.cos(angle) * 0.3 * spd,
+      vy: (0.2 + Math.random() * 0.2) * spd,
+      vz: Math.sin(angle) * 0.3 * spd,
+      life: life,
+      maxLife: life,
     };
     p.mesh.position.set(p.x, p.y, p.z);
     this.scene.add(p.mesh);
