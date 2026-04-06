@@ -12,6 +12,7 @@ async function init() {
   // Renderer
   const container = document.getElementById('game-container');
   const renderer = new THREE.WebGLRenderer({ antialias: false });
+  renderer.shadowMap.enabled = true;
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(1); // Pixel art — no subpixel rendering
   renderer.autoClear = false;

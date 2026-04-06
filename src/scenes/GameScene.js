@@ -45,11 +45,19 @@ export class GameScene {
     this.pixelSize = 4;
 
     // Lighting
-    const ambient = new THREE.AmbientLight(0xFFE8CC, 0.7);
+    const ambient = new THREE.AmbientLight(0xFFE8CC, 0.5);
     this.scene.add(ambient);
-    const dir = new THREE.DirectionalLight(0xFFFFFF, 0.6);
-    dir.position.set(5, 10, 5);
-    this.scene.add(dir);
+    this.dirLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+    this.dirLight.castShadow = true;
+    this.dirLight.shadow.mapSize.set(1024, 1024);
+    this.dirLight.shadow.camera.near = 0.1;
+    this.dirLight.shadow.camera.far = 50;
+    this.dirLight.shadow.camera.left = -15;
+    this.dirLight.shadow.camera.right = 15;
+    this.dirLight.shadow.camera.top = 15;
+    this.dirLight.shadow.camera.bottom = -15;
+    this.scene.add(this.dirLight);
+    this.scene.add(this.dirLight.target);
     this.scene.background = new THREE.Color(0x1a1a2e);
   }
 
@@ -261,6 +269,11 @@ export class GameScene {
   update(dt) {
     if (!this.active) return;
     this.isoCamera.update(dt);
+    // Light follows camera, 90° to the left
+    const angle = THREE.MathUtils.degToRad(this.isoCamera.getRotationAngle() + 45 - 90);
+    const center = this.isoCamera.center;
+    this.dirLight.position.set(center.x + Math.sin(angle) * 10, 10, center.z + Math.cos(angle) * 10);
+    this.dirLight.target.position.copy(center);
     this.playerRenderer.update(dt);
     this.playerRenderer.setCameraAngle(this.isoCamera.getRotationAngle());
     this.boardRenderer.updateOcclusion(this.board.playerPos, this.isoCamera.getCamera());

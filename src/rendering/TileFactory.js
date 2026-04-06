@@ -9,6 +9,8 @@ export class TileFactory {
     const topMat = new THREE.MeshLambertMaterial({ map: PixelTextures.getWallTopTexture() });
     const mesh = new THREE.Mesh(geo, [sideMat, sideMat, topMat, sideMat, sideMat, sideMat]);
     mesh.position.y = WALL_HEIGHT / 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     return mesh;
   }
 
@@ -18,6 +20,7 @@ export class TileFactory {
     const mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = 0.001;
+    mesh.receiveShadow = true;
     return mesh;
   }
 
@@ -27,6 +30,7 @@ export class TileFactory {
     const mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = 0.002;
+    mesh.receiveShadow = true;
     mesh.userData.baseMat = mat;
     return mesh;
   }
@@ -44,6 +48,8 @@ export class TileFactory {
     // BoxGeometry face order: +x, -x, +y, -y, +z, -z
     const mesh = new THREE.Mesh(geo, [matDark, matSide, matTop, matTop, matLabel, matDark]);
     mesh.position.y = BOX_SIZE / 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     return mesh;
   }
 }
