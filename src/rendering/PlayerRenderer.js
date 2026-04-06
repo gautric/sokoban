@@ -15,7 +15,7 @@ export class PlayerRenderer {
   }
 
   init() {
-    const loadSVGTexture = (callback) => {
+    const loadSVGTexture = (callback, outline = false) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
@@ -24,6 +24,18 @@ export class PlayerRenderer {
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
+        if (outline) {
+          const off = 7;
+          ctx.globalCompositeOperation = 'source-over';
+          for (let dx = -off; dx <= off; dx++)
+            for (let dy = -off; dy <= off; dy++)
+              if (dx * dx + dy * dy <= off * off)
+                ctx.drawImage(img, dx, dy, 256, 256);
+          ctx.globalCompositeOperation = 'source-in';
+          ctx.fillStyle = '#6F57E6';
+          ctx.fillRect(0, 0, 256, 256);
+          ctx.globalCompositeOperation = 'source-over';
+        }
         ctx.drawImage(img, 0, 0, 256, 256);
         const tex = new THREE.CanvasTexture(canvas);
         tex.minFilter = THREE.LinearFilter;
@@ -34,17 +46,19 @@ export class PlayerRenderer {
       img.src = 'assets/ghostv2.svg';
     };
 
-    // Ghost sprite
+    // Ghost sprite with violet border
     loadSVGTexture((tex) => {
       const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
       this.sprite = new THREE.Sprite(mat);
-      this.sprite.scale.set(1, 1, 1);
+      this.sprite.scale.set(1.05, 1.05, 1.05);
       this.sprite.position.y = 0.6;
       this.sprite.position.x = this.gridX * TILE_SIZE;
       this.sprite.position.z = this.gridY * TILE_SIZE;
       this.scene.add(this.sprite);
+    }, true);
 
-      // Shadow caster using same texture
+    // Shadow caster (plain, no outline)
+    loadSVGTexture((tex) => {
       const shadowMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, colorWrite: false });
       const shadowGeo = new THREE.PlaneGeometry(1, 1);
       this.shadowCaster = new THREE.Mesh(shadowGeo, shadowMat);
