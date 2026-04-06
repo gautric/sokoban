@@ -23,10 +23,17 @@ function lerpColor(r1,g1,b1, r2,g2,b2, t) {
   return [r1+(r2-r1)*t|0, g1+(g2-g1)*t|0, b1+(b2-b1)*t|0];
 }
 
+function _drawTape(ctx, color = 'rgba(60,30,5,0.7)') {
+  const tw = 10;
+  const cy = S / 2;
+  ctx.fillStyle = color;
+  ctx.fillRect(0, cy - tw / 2, S, tw);
+}
+
 export class PixelTextures {
   static getWallTexture() {
     if (cache.wall) return cache.wall;
-    const tex = new THREE.TextureLoader().load('assets/wall.jpg');
+    const tex = new THREE.TextureLoader().load('assets/wall.png');
     tex.magFilter = THREE.NearestFilter;
     tex.minFilter = THREE.NearestFilter;
     cache.wall = tex;
@@ -96,6 +103,7 @@ export class PixelTextures {
           const n = noise(x, y, 21);
           if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.12})`; ctx.fillRect(x, y, 1, 1); }
         }
+      _drawTape(ctx);
     });
     return cache.boxTop;
   }
@@ -138,6 +146,7 @@ export class PixelTextures {
           const n = noise(x, y, 24);
           if (n > 0.6) { ctx.fillStyle = `rgba(0,0,0,${(n - 0.6) * 0.12})`; ctx.fillRect(x, y, 1, 1); }
         }
+      _drawTape(ctx, 'rgba(15,50,15,0.7)');
     });
     return cache.boxTargetTop;
   }
