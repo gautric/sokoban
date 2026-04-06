@@ -165,9 +165,9 @@ export class PlayerRenderer {
         else intensity = 0.5;
         this._neonLight.intensity = intensity;
         this._neonLight.position.copy(this.sprite.position);
-        // Pulse sprite brightness
-        const glow = 0.6 + intensity * 0.1;
-        this.sprite.material.color.setRGB(glow * 0.48, glow * 0.38, glow);
+        // Pulse sprite brightness — flash white at peak, violet otherwise
+        const flash = Math.min(intensity / 4, 1);
+        this.sprite.material.color.setRGB(0.48 + 0.52 * flash, 0.38 + 0.62 * flash, 1);
         // Spin 3 times in 1.5s around Y axis
         const spin = Math.min(t / 1.5, 1) * Math.PI * 2 * 3;
         this._celebSpin = spin;
