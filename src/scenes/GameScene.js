@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Board } from '../core/Board.js';
 import { MoveResult, TILE_SIZE } from '../config.js';
 import { IsometricCamera } from '../rendering/IsometricCamera.js';
@@ -6,6 +9,7 @@ import { BoardRenderer } from '../rendering/BoardRenderer.js';
 import { PlayerRenderer } from '../rendering/PlayerRenderer.js';
 import { CompassOverlay } from '../rendering/CompassOverlay.js';
 import { ZoomIndicator } from '../rendering/ZoomIndicator.js';
+import { PixelIndicator } from '../rendering/PixelIndicator.js';
 import { TiltIndicator } from '../rendering/TiltIndicator.js';
 import { Minimap } from '../rendering/Minimap.js';
 import { HUD } from '../ui/HUD.js';
@@ -27,6 +31,7 @@ export class GameScene {
     this.playerRenderer = new PlayerRenderer(this.scene);
     this.compass = new CompassOverlay();
     this.zoomIndicator = new ZoomIndicator();
+    this.pixelIndicator = new PixelIndicator();
     this.tiltIndicator = new TiltIndicator();
     this.minimap = new Minimap();
     this.hud = new HUD(() => this.audioManager.toggleMute());
@@ -35,6 +40,9 @@ export class GameScene {
     this.currentLevelId = 0;
     this.active = false;
     this.firstMove = false;
+    this.composer = null;
+    this.pixelPass = null;
+    this.pixelSize = 4;
 
     // Lighting
     const ambient = new THREE.AmbientLight(0xFFE8CC, 0.7);
@@ -51,9 +59,13 @@ export class GameScene {
     this.firstMove = false;
 
     // Init UI
-    this.zoomIndicator.init(document.getElementById('ui-overlay'));
-    this.tiltIndicator.init(document.getElementById('ui-overlay'));
-    this.compass.init(document.getElementById('ui-overlay'));
+    const stack = document.createElement('div');
+    stack.id = 'indicators-stack';
+    document.getElementById('ui-overlay').appendChild(stack);
+    this.tiltIndicator.init(stack);
+    this.zoomIndicator.init(stack);
+    this.pixelIndicator.init(stack);
+    this.compass.init(stack);
     this.pauseMenu = new PauseMenu({
       onResume: () => { this.inputHandler.enabled = true; this.hud.resumeTimer(); },
       onRestart: () => this._restartLevel(),
@@ -87,6 +99,8 @@ export class GameScene {
       onTiltDown: () => { this.isoCamera.tiltDown(); this.tiltIndicator.setTilt(this.isoCamera.getTiltDeg()); },
       onToggleMute: () => this.audioManager.toggleMute(),
       onPause: () => this._togglePause(),
+      onPixelUp: () => { this.setPixelSize(1); this.pixelIndicator.setPixelSize(this.pixelSize); },
+      onPixelDown: () => { this.setPixelSize(-1); this.pixelIndicator.setPixelSize(this.pixelSize); },
     });
 
     this.hud.show();
@@ -101,14 +115,12 @@ export class GameScene {
     this.hud.hide();
     this.boardRenderer.dispose();
     this.playerRenderer.dispose();
+    this.composer = null;
+    this.pixelPass = null;
     if (this.pauseMenu) this.pauseMenu.hide();
     if (this.levelComplete) this.levelComplete.hide();
-    const zi = document.getElementById('zoom-indicator');
-    if (zi) zi.remove();
-    const ti = document.getElementById('tilt-indicator');
-    if (ti) ti.remove();
-    const cp = document.getElementById('compass');
-    if (cp) cp.remove();
+    const stack = document.getElementById('indicators-stack');
+    if (stack) stack.remove();
   }
 
   _loadLevel(levelId) {
@@ -259,10 +271,26 @@ export class GameScene {
     this.hud.update(this.stateManager.getMoveCount(), this.stateManager.getPushCount());
   }
 
+  _initComposer(renderer) {
+    this.composer = new EffectComposer(renderer);
+    this.pixelPass = new RenderPixelatedPass(this.pixelSize, this.scene, this.isoCamera.getCamera());
+    this.pixelPass.normalEdgeStrength = 0;
+    this.pixelPass.depthEdgeStrength = 0;
+    this.composer.addPass(this.pixelPass);
+    this.composer.addPass(new OutputPass());
+  }
+
+  setPixelSize(delta) {
+    this.pixelSize = Math.max(1, Math.min(16, this.pixelSize + delta));
+    if (this.pixelPass) this.pixelPass.setPixelSize(this.pixelSize);
+  }
+
   render(renderer) {
     if (!this.active) return;
+    if (!this.composer) this._initComposer(renderer);
+    this.pixelPass.camera = this.isoCamera.getCamera();
     renderer.setViewport(0, 0, renderer.domElement.width, renderer.domElement.height);
-    renderer.render(this.scene, this.isoCamera.getCamera());
+    this.composer.render();
     this.minimap.render(renderer, this.scene);
   }
 }

@@ -19,6 +19,7 @@ async function init() {
 
   window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
+    if (sceneManager.scenes?.game?.composer) sceneManager.scenes.game.composer.setSize(window.innerWidth, window.innerHeight);
   });
 
   // Singletons

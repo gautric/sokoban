@@ -61,6 +61,8 @@ export class InputHandler {
       case '+': case '=': cb.onZoomIn?.(); break;
       case '-': case '_': cb.onZoomOut?.(); break;
       case 'p': case 'P': cb.onTilt?.(); break;
+      case '[': cb.onPixelDown?.(); break;
+      case ']': cb.onPixelUp?.(); break;
     }
   }
 
