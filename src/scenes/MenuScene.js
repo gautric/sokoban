@@ -17,7 +17,7 @@ export class MenuScene {
       <div class="how-to-play-modal" id="how-to-play" style="display:none">
         <h3>HOW TO PLAY</h3>
         <p>Push all boxes onto targets!</p>
-        <p>WASD/Arrows: Move</p>
+        <p>Arrows: Move</p>
         <p>Q/E: Rotate camera</p>
         <p>Z: Undo | R: Restart</p>
         <p>M: Mute | Esc: Pause</p>

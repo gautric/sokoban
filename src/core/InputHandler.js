@@ -43,13 +43,13 @@ export class InputHandler {
     if (!this.enabled) return;
     const cb = this.callbacks;
     switch (e.key) {
-      case 'ArrowUp': case 'w': case 'W':
+      case 'ArrowUp':
         cb.onMove?.(this._mapDirection(Direction.UP)); e.preventDefault(); break;
-      case 'ArrowDown': case 's': case 'S':
+      case 'ArrowDown':
         cb.onMove?.(this._mapDirection(Direction.DOWN)); e.preventDefault(); break;
-      case 'ArrowLeft': case 'a': case 'A':
+      case 'ArrowLeft':
         cb.onMove?.(this._mapDirection(Direction.LEFT)); e.preventDefault(); break;
-      case 'ArrowRight': case 'd': case 'D':
+      case 'ArrowRight':
         cb.onMove?.(this._mapDirection(Direction.RIGHT)); e.preventDefault(); break;
       case 'z': case 'Z': cb.onUndo?.(); break;
       case 'r': case 'R': cb.onRestart?.(); break;
