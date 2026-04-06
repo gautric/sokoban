@@ -5,59 +5,76 @@ export class LevelSelectScene {
     this.sceneManager = sceneManager;
     this.levelManager = levelManager;
     this.el = document.getElementById('level-select-screen');
+    this.grid = this.el.querySelector('.level-grid');
+    this.nav = this.el.querySelector('.level-nav');
+    this.prevBtn = document.getElementById('level-prev');
+    this.nextBtn = document.getElementById('level-next');
+    this.pageLabel = document.getElementById('level-page-label');
+    this.backContainer = this.el.querySelector('.level-select-back');
     this.page = 0;
     this.perPage = 20;
+    this._built = false;
+  }
+
+  _buildOnce() {
+    if (this._built) return;
+    this.prevBtn.addEventListener('click', () => { this.page--; this._renderGrid(); });
+    this.nextBtn.addEventListener('click', () => { this.page++; this._renderGrid(); });
+    this.backContainer.appendChild(PixelButton.create('Back', () => this.sceneManager.switchTo('menu')));
+    this._built = true;
   }
 
   activate() {
-    this._render();
+    this._buildOnce();
+    this._renderGrid();
     this.el.style.display = 'flex';
   }
 
   deactivate() { this.el.style.display = 'none'; }
 
-  _render() {
+  _renderGrid() {
     const levels = this.levelManager.getLevelList();
     const totalPages = Math.ceil(levels.length / this.perPage);
     const start = this.page * this.perPage;
     const pageLevels = levels.slice(start, start + this.perPage);
 
-    this.el.innerHTML = '<h2>SELECT LEVEL</h2>';
-
-    const grid = document.createElement('div');
-    grid.className = 'level-grid';
+    this.grid.replaceChildren();
 
     for (const l of pageLevels) {
       const tile = document.createElement('div');
       tile.className = `level-tile ${l.unlocked ? 'unlocked' : 'locked'} ${l.solved ? 'solved' : ''}`;
       tile.setAttribute('data-testid', `level-tile-${l.id}`);
-      tile.innerHTML = `
-        <div class="level-num">${l.id + 1}</div>
-        <div class="level-stars">${l.solved ? '★'.repeat(l.stars) + '☆'.repeat(3 - l.stars) : (l.unlocked ? '☆☆☆' : '🔒')}</div>
-        ${l.bestMoves ? `<div class="level-best">${l.bestMoves}</div>` : ''}
-      `;
-      if (l.unlocked) {
-        tile.addEventListener('click', () => this.sceneManager.switchTo('game', l.id));
+
+      const num = document.createElement('div');
+      num.className = 'level-num';
+      num.textContent = l.id + 1;
+      tile.appendChild(num);
+
+      const stars = document.createElement('div');
+      stars.className = 'level-stars';
+      stars.textContent = l.solved ? '★'.repeat(l.stars) + '☆'.repeat(3 - l.stars) : (l.unlocked ? '☆☆☆' : '🔒');
+      tile.appendChild(stars);
+
+      if (l.bestMoves) {
+        const best = document.createElement('div');
+        best.className = 'level-best';
+        best.textContent = l.bestMoves;
+        tile.appendChild(best);
       }
-      grid.appendChild(tile);
+
+      if (l.unlocked) tile.addEventListener('click', () => this.sceneManager.switchTo('game', l.id));
+      this.grid.appendChild(tile);
     }
-    this.el.appendChild(grid);
 
     // Pagination
     if (totalPages > 1) {
-      const nav = document.createElement('div');
-      nav.className = 'level-nav';
-      if (this.page > 0) nav.appendChild(PixelButton.create('< Prev', () => { this.page--; this._render(); }));
-      const pageLabel = document.createElement('span');
-      pageLabel.className = 'page-label';
-      pageLabel.textContent = `${this.page + 1}/${totalPages}`;
-      nav.appendChild(pageLabel);
-      if (this.page < totalPages - 1) nav.appendChild(PixelButton.create('Next >', () => { this.page++; this._render(); }));
-      this.el.appendChild(nav);
+      this.nav.style.display = 'flex';
+      this.prevBtn.style.display = this.page > 0 ? '' : 'none';
+      this.nextBtn.style.display = this.page < totalPages - 1 ? '' : 'none';
+      this.pageLabel.textContent = `${this.page + 1}/${totalPages}`;
+    } else {
+      this.nav.style.display = 'none';
     }
-
-    // Back button
-    this.el.appendChild(PixelButton.create('Back', () => this.sceneManager.switchTo('menu')));
   }
 
   update() {}
