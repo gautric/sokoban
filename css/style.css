@@ -73,12 +73,28 @@ canvas { display: block; }
   z-index: 10;
 }
 
+.title-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .game-title {
   font-size: 96px;
   color: #7B61FF;
   text-align: center;
-  text-shadow: 2px 2px 0 #3a2a8a;
+  text-shadow: 4px 4px 0 white, 2px 2px 0 #3a2a8a, 0 0 20px #7B61FF44;
   line-height: 1.6;
+  perspective: 600px;
+  transform-style: preserve-3d;
+  animation: title3d 6s ease-in-out infinite;
+}
+
+@keyframes title3d {
+  0%   { transform: perspective(600px) rotateY(-8deg) rotateX(4deg) translateZ(0px); }
+  25%  { transform: perspective(600px) rotateY(6deg) rotateX(-3deg) translateZ(30px); }
+  50%  { transform: perspective(600px) rotateY(8deg) rotateX(4deg) translateZ(0px); }
+  75%  { transform: perspective(600px) rotateY(-6deg) rotateX(-3deg) translateZ(30px); }
+  100% { transform: perspective(600px) rotateY(-8deg) rotateX(4deg) translateZ(0px); }
 }
 
 .menu-ghost {
