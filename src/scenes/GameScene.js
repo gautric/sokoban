@@ -66,29 +66,32 @@ export class GameScene {
     this.active = true;
     this.firstMove = false;
 
-    // Init UI
-    const stack = document.createElement('div');
-    stack.id = 'indicators-stack';
-    document.getElementById('ui-overlay').appendChild(stack);
-    this.tiltIndicator.init(stack);
-    this.zoomIndicator.init(stack);
-    this.pixelIndicator.init(stack);
-    this.compass.init(stack);
-    this.pauseMenu = new PauseMenu({
-      onResume: () => { this.inputHandler.enabled = true; this.hud.resumeTimer(); },
-      onRestart: () => this._restartLevel(),
-      onLevelSelect: () => this.sceneManager.switchTo('levelSelect'),
-      onMainMenu: () => this.sceneManager.switchTo('menu'),
-    });
-    this.levelComplete = new LevelCompleteUI({
-      onNext: () => {
-        const next = this.levelManager.nextLevel(this.currentLevelId);
-        if (next !== null) this.activate(next);
-        else this.sceneManager.switchTo('levelSelect');
-      },
-      onReplay: () => this.activate(this.currentLevelId),
-      onLevelSelect: () => this.sceneManager.switchTo('levelSelect'),
-    });
+    // Init UI (once only)
+    if (!this._uiBuilt) {
+      const stack = document.createElement('div');
+      stack.id = 'indicators-stack';
+      document.getElementById('ui-overlay').appendChild(stack);
+      this.tiltIndicator.init(stack);
+      this.zoomIndicator.init(stack);
+      this.pixelIndicator.init(stack);
+      this.compass.init(stack);
+      this.pauseMenu = new PauseMenu({
+        onResume: () => { this.inputHandler.enabled = true; this.hud.resumeTimer(); },
+        onRestart: () => this._restartLevel(),
+        onLevelSelect: () => this.sceneManager.switchTo('levelSelect'),
+        onMainMenu: () => this.sceneManager.switchTo('menu'),
+      });
+      this.levelComplete = new LevelCompleteUI({
+        onNext: () => {
+          const next = this.levelManager.nextLevel(this.currentLevelId);
+          if (next !== null) this.activate(next);
+          else this.sceneManager.switchTo('levelSelect');
+        },
+        onReplay: () => this.activate(this.currentLevelId),
+        onLevelSelect: () => this.sceneManager.switchTo('levelSelect'),
+      });
+      this._uiBuilt = true;
+    }
 
     this._loadLevel(levelId);
     this.audioManager.music?.stop();

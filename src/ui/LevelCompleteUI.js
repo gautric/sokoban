@@ -7,7 +7,6 @@ export class LevelCompleteUI {
     this.movesEl = document.getElementById('complete-moves');
     this.pushesEl = document.getElementById('complete-pushes');
     this.timeEl = document.getElementById('complete-time');
-    this.confetti = this.el.querySelector('.confetti-container');
     this.btns = this.el.querySelector('.complete-buttons');
     this.callbacks = callbacks;
     this.visible = false;
@@ -31,17 +30,6 @@ export class LevelCompleteUI {
     this.movesEl.textContent = moves;
     this.pushesEl.textContent = pushes;
     this.timeEl.textContent = `${m}:${s}`;
-
-    this.confetti.replaceChildren();
-    const colors = ['#7B61FF', '#FF6B6B', '#4CAF50', '#FFD700', '#00BCD4'];
-    for (let i = 0; i < 30; i++) {
-      const c = document.createElement('div');
-      c.className = 'confetti';
-      c.style.left = `${Math.random() * 100}%`;
-      c.style.animationDelay = `${Math.random() * 2}s`;
-      c.style.backgroundColor = colors[i % 5];
-      this.confetti.appendChild(c);
-    }
 
     this.el.style.display = 'flex';
     this.visible = true;
