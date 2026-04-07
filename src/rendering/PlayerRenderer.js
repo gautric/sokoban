@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TILE_SIZE, PLAYER_BOB_AMPLITUDE, PLAYER_BOB_PERIOD, PARTICLE_COLOR, PARTICLE_LIFETIME, PARTICLE_SPAWN_RATE_IDLE, PARTICLE_SPAWN_RATE_MOVING, MOVE_LERP_DURATION, ROTATION_MAP } from '../config.js';
+import { DEBUG, TILE_SIZE, PLAYER_BOB_AMPLITUDE, PLAYER_BOB_PERIOD, PARTICLE_COLOR, PARTICLE_LIFETIME, PARTICLE_SPAWN_RATE_IDLE, PARTICLE_SPAWN_RATE_MOVING, MOVE_LERP_DURATION, ROTATION_MAP } from '../config.js';
 import { Direction } from '../config.js';
 
 export class PlayerRenderer {
@@ -13,6 +13,15 @@ export class PlayerRenderer {
     this.gridY = 0;
     this._animating = false;
     this._camera = null;
+    this._mouseX = 0;
+    this._mouseY = 0;
+    this._tiltX = 0;
+    this._tiltZ = 0;
+    this._onMouseMove = (e) => {
+      this._mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      this._mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    window.addEventListener('mousemove', this._onMouseMove);
   }
 
   init() {
@@ -56,6 +65,30 @@ export class PlayerRenderer {
       this.sprite.position.x = this.gridX * TILE_SIZE;
       this.sprite.position.z = this.gridY * TILE_SIZE;
       this.scene.add(this.sprite);
+
+      // Debug axes + labels (activate with ?debug in URL)
+      if (DEBUG) {
+        this._axes = new THREE.AxesHelper(0.8);
+        this.sprite.add(this._axes);
+
+        const makeLabel = (text, color, pos) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 64; canvas.height = 32;
+          const ctx = canvas.getContext('2d');
+          ctx.font = 'bold 24px monospace';
+          ctx.fillStyle = color;
+          ctx.fillText(text, 4, 24);
+          const tex = new THREE.CanvasTexture(canvas);
+          const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+          const s = new THREE.Sprite(mat);
+          s.scale.set(0.4, 0.2, 1);
+          s.position.copy(pos);
+          return s;
+        };
+        this.sprite.add(makeLabel('X', '#ff0000', new THREE.Vector3(0.95, 0, 0)));
+        this.sprite.add(makeLabel('Y', '#00ff00', new THREE.Vector3(0, 0.95, 0)));
+        this.sprite.add(makeLabel('Z', '#0088ff', new THREE.Vector3(0, 0, 0.95)));
+      }
     }, true);
 
     // Shadow caster (plain, no outline)
@@ -147,6 +180,11 @@ export class PlayerRenderer {
     if (this._camera) {
       this.sprite.lookAt(this._camera.position);
       if (this._celebSpin) this.sprite.rotateY(this._celebSpin);
+      // Smooth 3D tilt toward mouse
+      this._tiltX += (this._mouseY * 0.4 - this._tiltX) * 0.08;
+      this._tiltZ += (this._mouseX * -0.3 - this._tiltZ) * 0.08;
+      this.sprite.rotateX(this._tiltX);
+      this.sprite.rotateZ(this._tiltZ);
     }
 
     // Sync shadow caster
@@ -239,6 +277,7 @@ export class PlayerRenderer {
   }
 
   dispose() {
+    window.removeEventListener('mousemove', this._onMouseMove);
     if (this._celebrating) this._stopCelebration();
     if (this.sprite) {
       this.scene.remove(this.sprite);
