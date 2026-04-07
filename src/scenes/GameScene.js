@@ -145,7 +145,25 @@ export class GameScene {
     this.board.loadLevel(level);
     this.stateManager.clearUndo();
 
+    // Purge entire scene
     this.boardRenderer.dispose();
+    this.playerRenderer.dispose();
+    for (let i = this.scene.children.length - 1; i >= 0; i--) {
+      const obj = this.scene.children[i];
+      obj.traverse(child => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          const mats = Array.isArray(child.material) ? child.material : [child.material];
+          mats.forEach(m => { if (m.map) m.map.dispose(); m.dispose(); });
+        }
+      });
+      this.scene.remove(obj);
+    }
+    // Re-add persistent lights
+    this.scene.add(new THREE.AmbientLight(0xFFE8CC, 0.5));
+    this.scene.add(this.dirLight);
+    this.scene.add(this.dirLight.target);
+
     this.boardRenderer = new BoardRenderer(this.scene);
     this.boardRenderer.buildBoard(this.board);
 
