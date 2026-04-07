@@ -155,10 +155,12 @@ export class PlayerRenderer {
     this._celebrateStart = performance.now();
     // Turn ghost violet
     this.sprite.material.color.set(0x7B61FF);
-    // Add neon point light
-    this._neonLight = new THREE.PointLight(0x7B61FF, 2, 5);
+    // Add neon point light (reuse singleton)
+    if (!this._neonLight) {
+      this._neonLight = new THREE.PointLight(0x7B61FF, 2, 5);
+      this.scene.add(this._neonLight);
+    }
     this._neonLight.position.copy(this.sprite.position);
-    this.scene.add(this._neonLight);
   }
 
   _stopCelebration() {
