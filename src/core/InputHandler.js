@@ -15,7 +15,9 @@ export class InputHandler {
   }
 
   init(callbacks) {
+    this.destroy();
     this.callbacks = callbacks;
+    this.enabled = true;
     window.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('wheel', this._onWheel, { passive: false });
     window.addEventListener('mousedown', this._onMouseDown);
