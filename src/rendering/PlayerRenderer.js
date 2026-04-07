@@ -22,6 +22,8 @@ export class PlayerRenderer {
       this._mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
     };
     window.addEventListener('mousemove', this._onMouseMove);
+    this._neonLight = new THREE.PointLight(0x7B61FF, 0, 5);
+    this.scene.add(this._neonLight);
   }
 
   init() {
@@ -155,11 +157,7 @@ export class PlayerRenderer {
     this._celebrateStart = performance.now();
     // Turn ghost violet
     this.sprite.material.color.set(0x7B61FF);
-    // Add neon point light (reuse singleton)
-    if (!this._neonLight) {
-      this._neonLight = new THREE.PointLight(0x7B61FF, 2, 5);
-      this.scene.add(this._neonLight);
-    }
+    this._neonLight.intensity = 2;
     this._neonLight.position.copy(this.sprite.position);
   }
 
@@ -167,7 +165,7 @@ export class PlayerRenderer {
     this._celebrating = false;
     if (this.sprite) this.sprite.material.color.set(0xffffff);
     this._celebSpin = 0;
-    if (this._neonLight) { this.scene.remove(this._neonLight); this._neonLight = null; }
+    if (this._neonLight) this._neonLight.intensity = 0;
   }
 
   update(dt) {
@@ -281,6 +279,7 @@ export class PlayerRenderer {
   dispose() {
     window.removeEventListener('mousemove', this._onMouseMove);
     if (this._celebrating) this._stopCelebration();
+    if (this._neonLight) { this.scene.remove(this._neonLight); this._neonLight = null; }
     if (this.sprite) {
       this.scene.remove(this.sprite);
       if (this.sprite.material.map) this.sprite.material.map.dispose();
