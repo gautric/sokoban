@@ -1,3 +1,6 @@
+// Debug mode — activate via ?debug in URL or set manually
+export const DEBUG = new URLSearchParams(window.location.search).has('debug');
+
 // Game constants
 export const TILE_SIZE = 1;
 export const WALL_HEIGHT = 1;
