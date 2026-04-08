@@ -1,10 +1,29 @@
+/**
+ * SFXEngine — PROTOTYPE + FLYWEIGHT patterns.
+ *
+ * PROTOTYPE: SFX configs are prototype objects — clone and play.
+ * FLYWEIGHT: Shared oscillator parameter sets avoid redundant object creation.
+ */
+
+// ── FLYWEIGHT: shared SFX parameter templates ──
+const SFX_TEMPLATES = Object.freeze({
+  move:        Object.freeze({ freq: 200, endFreq: 300, dur: 0.05, type: 'triangle', vol: 0.15 }),
+  push:        Object.freeze({ freq: 100, endFreq: 60,  dur: 0.08, type: 'square',   vol: 0.2 }),
+  boxOnTarget: Object.freeze({ freq: 523, endFreq: 523, dur: 0.1,  type: 'square',   vol: 0.2 }),
+  boxOnTarget2:Object.freeze({ freq: 659, endFreq: 659, dur: 0.1,  type: 'square',   vol: 0.2 }),
+  undo:        Object.freeze({ freq: 400, endFreq: 200, dur: 0.1,  type: 'triangle', vol: 0.15 }),
+  menuClick:   Object.freeze({ freq: 440, endFreq: 440, dur: 0.03, type: 'square',   vol: 0.15 }),
+});
+
 export class SFXEngine {
   constructor(ctx, gainNode) {
     this.ctx = ctx;
     this.gain = gainNode;
   }
 
-  _play(freq, endFreq, dur, type, vol = 0.3) {
+  /** PROTOTYPE: clone a template and play it */
+  _playTemplate(template) {
+    const { freq, endFreq, dur, type, vol } = template;
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     osc.type = type;
@@ -17,16 +36,15 @@ export class SFXEngine {
     osc.stop(this.ctx.currentTime + dur);
   }
 
-  playMove() { this._play(200, 300, 0.05, 'triangle', 0.15); }
-  playPush() { this._play(100, 60, 0.08, 'square', 0.2); }
+  playMove()     { this._playTemplate(SFX_TEMPLATES.move); }
+  playPush()     { this._playTemplate(SFX_TEMPLATES.push); }
+  playUndo()     { this._playTemplate(SFX_TEMPLATES.undo); }
+  playMenuClick(){ this._playTemplate(SFX_TEMPLATES.menuClick); }
 
   playBoxOnTarget() {
-    this._play(523, 523, 0.1, 'square', 0.2);
-    setTimeout(() => this._play(659, 659, 0.1, 'square', 0.2), 100);
+    this._playTemplate(SFX_TEMPLATES.boxOnTarget);
+    setTimeout(() => this._playTemplate(SFX_TEMPLATES.boxOnTarget2), 100);
   }
-
-  playUndo() { this._play(400, 200, 0.1, 'triangle', 0.15); }
-  playMenuClick() { this._play(440, 440, 0.03, 'square', 0.15); }
 
   setVolume(v) { this.gain.gain.value = v; }
 }

@@ -1,11 +1,26 @@
 import { LevelParser } from './LevelParser.js';
 import { OPTIMAL_MOVES } from '../config.js';
+import { LevelIterator, ScoringContext, MoveBasedScoring } from '../patterns/behavioral.js';
+import { LevelBuilder } from '../patterns/creational.js';
 
+/**
+ * LevelManager — ITERATOR + STRATEGY + BUILDER patterns.
+ *
+ * Iterator: LevelIterator provides sequential/filtered access to levels.
+ * Strategy: ScoringContext with swappable star-rating algorithms.
+ * Builder:  LevelBuilder available for programmatic level construction.
+ */
 export class LevelManager {
   constructor(stateManager) {
     this.stateManager = stateManager;
     this.levels = [];
     this.metadata = { collection: '', author: '' };
+
+    // ── STRATEGY: scoring algorithm ──
+    this.scoring = new ScoringContext(new MoveBasedScoring());
+
+    // ── BUILDER: available for programmatic level creation ──
+    this.builder = new LevelBuilder();
   }
 
   async loadPacks() {
@@ -16,7 +31,6 @@ export class LevelManager {
     const pack1 = LevelParser.parseSOK(sok1);
     const pack2 = LevelParser.parseSOK(sok2);
 
-    // Interleave levels from both packs
     this.levels = [];
     const max = Math.max(pack1.levels.length, pack2.levels.length);
     for (let i = 0; i < max; i++) {
@@ -24,12 +38,7 @@ export class LevelManager {
       if (i < pack2.levels.length) this.levels.push({ ...pack2.levels[i], pack: pack2.collection || 'Microban II' });
     }
 
-    // Assign sequential IDs and default titles
-    this.levels.forEach((l, i) => {
-      l.id = i;
-      if (!l.title) l.title = `Level ${i + 1}`;
-    });
-
+    this.levels.forEach((l, i) => { l.id = i; if (!l.title) l.title = `Level ${i + 1}`; });
     this.metadata = { collection: 'Kiro\'s Ghost Sokoban', author: 'David W. Skinner' };
   }
 
@@ -37,9 +46,7 @@ export class LevelManager {
     return this.levels.map(l => {
       const progress = this.stateManager.getLevelProgress(l.id);
       return {
-        id: l.id,
-        title: l.title,
-        pack: l.pack,
+        id: l.id, title: l.title, pack: l.pack,
         unlocked: this.isUnlocked(l.id),
         solved: progress?.solved || false,
         stars: progress?.stars || 0,
@@ -48,32 +55,29 @@ export class LevelManager {
     });
   }
 
-  getLevel(id) {
-    return this.levels[id] || null;
+  /** ITERATOR: get an iterator over all levels, optionally filtered */
+  iterator(filterFn = null) {
+    return new LevelIterator(this.getLevelList(), filterFn);
   }
 
-  getLevelCount() {
-    return this.levels.length;
+  /** ITERATOR: iterate only unsolved levels */
+  unsolvedIterator() {
+    return this.iterator(l => !l.solved);
   }
 
-  nextLevel(currentId) {
-    const next = currentId + 1;
-    return next < this.levels.length ? next : null;
-  }
+  getLevel(id) { return this.levels[id] || null; }
+  getLevelCount() { return this.levels.length; }
+  nextLevel(currentId) { const n = currentId + 1; return n < this.levels.length ? n : null; }
+  isUnlocked() { return true; }
 
-  isUnlocked() {
-    return true;
-  }
-
-  getStarRating(levelId, moves) {
+  /** STRATEGY: calculate star rating using current scoring strategy */
+  getStarRating(levelId, moves, pushes = 0, time = 0) {
     const optimal = OPTIMAL_MOVES[levelId] || moves;
-    if (moves <= optimal) return 3;
-    if (moves <= optimal * 1.5) return 2;
-    return 1;
+    return this.scoring.calculate(levelId, moves, pushes, time, optimal);
   }
 
   saveCompletion(levelId, moves, pushes) {
-    const stars = this.getStarRating(levelId, moves);
+    const stars = this.getStarRating(levelId, moves, pushes);
     this.stateManager.saveProgress(levelId, moves, pushes, stars);
     return stars;
   }

@@ -1,27 +1,24 @@
+import { MementoCaretaker } from '../patterns/behavioral.js';
+
 const PROGRESS_KEY = 'kiro-sokoban-progress';
 const AUDIO_KEY = 'kiro-sokoban-audio';
 const SESSION_KEY = 'kiro-sokoban-session';
 
+/**
+ * StateManager — uses MementoCaretaker to store board snapshots.
+ * The Board creates mementos; StateManager (caretaker) stores them.
+ */
 export class StateManager {
   constructor() {
-    this.undoStack = [];
+    this.caretaker = new MementoCaretaker();
     this.moves = 0;
     this.pushes = 0;
   }
 
-  pushUndo(state) {
-    this.undoStack.push(JSON.parse(JSON.stringify(state)));
-  }
-
-  popUndo() {
-    return this.undoStack.length > 0 ? this.undoStack.pop() : null;
-  }
-
-  clearUndo() {
-    this.undoStack = [];
-    this.moves = 0;
-    this.pushes = 0;
-  }
+  // ── MEMENTO CARETAKER delegation ──
+  pushUndo(memento) { this.caretaker.save(memento); }
+  popUndo() { return this.caretaker.restore(); }
+  clearUndo() { this.caretaker.clear(); this.moves = 0; this.pushes = 0; }
 
   incrementMoves() { this.moves++; }
   incrementPushes() { this.pushes++; }
@@ -47,13 +44,8 @@ export class StateManager {
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
   }
 
-  getLevelProgress(levelId) {
-    return this.getProgress().levels[levelId] || null;
-  }
-
-  getUnlockedLevel() {
-    return this.getProgress().unlockedLevel;
-  }
+  getLevelProgress(levelId) { return this.getProgress().levels[levelId] || null; }
+  getUnlockedLevel() { return this.getProgress().unlockedLevel; }
 
   // Audio settings
   getAudioSettings() {
@@ -61,26 +53,22 @@ export class StateManager {
     catch { return { masterVolume: 0.5, musicVolume: 0.5, sfxVolume: 0.7, muted: false }; }
   }
 
-  saveAudioSettings(settings) {
-    localStorage.setItem(AUDIO_KEY, JSON.stringify(settings));
-  }
+  saveAudioSettings(settings) { localStorage.setItem(AUDIO_KEY, JSON.stringify(settings)); }
 
   // Session persistence
   saveSession(levelId) {
     localStorage.setItem(SESSION_KEY, JSON.stringify({
-      levelId, undoStack: this.undoStack, moves: this.moves, pushes: this.pushes,
+      levelId, moves: this.moves, pushes: this.pushes,
     }));
   }
 
   loadSession() {
     try {
       const s = JSON.parse(localStorage.getItem(SESSION_KEY));
-      if (s) { this.undoStack = s.undoStack || []; this.moves = s.moves || 0; this.pushes = s.pushes || 0; }
+      if (s) { this.moves = s.moves || 0; this.pushes = s.pushes || 0; }
       return s;
     } catch { return null; }
   }
 
-  clearSession() {
-    localStorage.removeItem(SESSION_KEY);
-  }
+  clearSession() { localStorage.removeItem(SESSION_KEY); }
 }

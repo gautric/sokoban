@@ -1,7 +1,14 @@
-// Debug mode — activate via ?debug in URL or set manually
+/**
+ * config.js — FLYWEIGHT pattern.
+ *
+ * All constant objects are frozen and shared across the entire application.
+ * No component creates its own copy — they all reference these flyweight instances.
+ * Object.freeze() ensures immutability (true intrinsic state).
+ */
+
 export const DEBUG = new URLSearchParams(window.location.search).has('debug');
 
-// Game constants
+// ── FLYWEIGHT: frozen shared game constants ──
 export const TILE_SIZE = 1;
 export const WALL_HEIGHT = 1;
 export const BOX_SIZE = 0.8;
@@ -28,31 +35,31 @@ export const PARTICLE_SPAWN_RATE_IDLE = 3;
 export const PARTICLE_SPAWN_RATE_MOVING = 5;
 export const BOARD_PADDING = 2;
 
-export const TileType = { EMPTY: 0, WALL: 1, FLOOR: 2, TARGET: 3 };
-export const EntityType = { NONE: 0, PLAYER: 1, BOX: 2 };
-export const Direction = { UP: 0, DOWN: 1, LEFT: 2, RIGHT: 3 };
-export const MoveResult = { MOVED: 0, PUSHED: 1, BLOCKED: 2 };
+// ── FLYWEIGHT: frozen enum objects — shared intrinsic state ──
+export const TileType = Object.freeze({ EMPTY: 0, WALL: 1, FLOOR: 2, TARGET: 3 });
+export const EntityType = Object.freeze({ NONE: 0, PLAYER: 1, BOX: 2 });
+export const Direction = Object.freeze({ UP: 0, DOWN: 1, LEFT: 2, RIGHT: 3 });
+export const MoveResult = Object.freeze({ MOVED: 0, PUSHED: 1, BLOCKED: 2 });
 
-export const DIR_VECTORS = {
-  [Direction.UP]:    { x:  0, y: -1 },
-  [Direction.DOWN]:  { x:  0, y:  1 },
-  [Direction.LEFT]:  { x: -1, y:  0 },
-  [Direction.RIGHT]: { x:  1, y:  0 },
-};
+export const DIR_VECTORS = Object.freeze({
+  [Direction.UP]:    Object.freeze({ x:  0, y: -1 }),
+  [Direction.DOWN]:  Object.freeze({ x:  0, y:  1 }),
+  [Direction.LEFT]:  Object.freeze({ x: -1, y:  0 }),
+  [Direction.RIGHT]: Object.freeze({ x:  1, y:  0 }),
+});
 
-// Camera rotation → direction remapping
-// Index by rotation step (0=0°, 1=90°, 2=180°, 3=270°)
-export const ROTATION_MAP = [
-  [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT],
-  [Direction.LEFT, Direction.RIGHT, Direction.DOWN, Direction.UP],
-  [Direction.DOWN, Direction.UP, Direction.RIGHT, Direction.LEFT],
-  [Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN],
-];
+// ── FLYWEIGHT: frozen rotation map — shared across InputHandler + PlayerRenderer ──
+export const ROTATION_MAP = Object.freeze([
+  Object.freeze([Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]),
+  Object.freeze([Direction.LEFT, Direction.RIGHT, Direction.DOWN, Direction.UP]),
+  Object.freeze([Direction.DOWN, Direction.UP, Direction.RIGHT, Direction.LEFT]),
+  Object.freeze([Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN]),
+]);
 
-// Hardcoded optimal move counts for star rating (index = levelId starting at 0)
-export const OPTIMAL_MOVES = [
+// ── FLYWEIGHT: frozen optimal moves array ──
+export const OPTIMAL_MOVES = Object.freeze([
   15,20,25,18,22,30,28,35,32,40,
   38,42,45,50,48,55,52,60,58,65,
   62,68,70,75,72,80,78,85,82,90,
   88,95,92,100,98,105,102,110,108,115
-];
+]);

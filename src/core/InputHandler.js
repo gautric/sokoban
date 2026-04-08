@@ -1,9 +1,18 @@
 import { Direction, ROTATION_MAP } from '../config.js';
+import { buildInputChain, UIInputHandler, GameInputHandler } from '../patterns/behavioral.js';
+import { TouchInputAdapter } from '../patterns/structural.js';
 
+/**
+ * InputHandler — CHAIN OF RESPONSIBILITY + ADAPTER patterns.
+ *
+ * Chain: keyboard events pass through UIInputHandler → GameInputHandler.
+ *        UI handler eats events when menus are open.
+ * Adapter: TouchInputAdapter maps swipe gestures to the same callback interface.
+ */
 export class InputHandler {
   constructor() {
     this.callbacks = {};
-    this.rotationStep = 0; // 0-3 representing 0°,90°,180°,270°
+    this.rotationStep = 0;
     this.enabled = true;
     this._onKeyDown = this._onKeyDown.bind(this);
     this._onWheel = this._onWheel.bind(this);
@@ -12,12 +21,29 @@ export class InputHandler {
     this._onMouseUp = this._onMouseUp.bind(this);
     this._dragging = false;
     this._lastMouseX = 0;
+
+    // ── CHAIN OF RESPONSIBILITY: built lazily in init() ──
+    this._chain = null;
+
+    // ── ADAPTER: touch input ──
+    this._touchAdapter = null;
   }
 
   init(callbacks) {
     this.destroy();
     this.callbacks = callbacks;
     this.enabled = true;
+
+    // ── CHAIN: UI handler eats Escape when menus open ──
+    this._chain = buildInputChain(
+      () => !this.enabled,
+      (e) => this._processKey(e)
+    );
+
+    // ── ADAPTER: attach touch swipe support ──
+    this._touchAdapter = new TouchInputAdapter(callbacks);
+    this._touchAdapter.attach(document.body);
+
     window.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('wheel', this._onWheel, { passive: false });
     window.addEventListener('mousedown', this._onMouseDown);
@@ -31,28 +57,26 @@ export class InputHandler {
     window.removeEventListener('mousedown', this._onMouseDown);
     window.removeEventListener('mousemove', this._onMouseMove);
     window.removeEventListener('mouseup', this._onMouseUp);
+    if (this._touchAdapter) this._touchAdapter.detach(document.body);
   }
 
-  setRotationStep(step) {
-    this.rotationStep = ((step % 4) + 4) % 4;
-  }
-
-  _mapDirection(dir) {
-    return ROTATION_MAP[this.rotationStep][dir];
-  }
+  setRotationStep(step) { this.rotationStep = ((step % 4) + 4) % 4; }
+  _mapDirection(dir) { return ROTATION_MAP[this.rotationStep][dir]; }
 
   _onKeyDown(e) {
+    // ── CHAIN: pass through chain first ──
+    if (this._chain) this._chain.handle(e);
+    else if (this.enabled) this._processKey(e);
+  }
+
+  _processKey(e) {
     if (!this.enabled) return;
     const cb = this.callbacks;
     switch (e.key) {
-      case 'ArrowUp':
-        cb.onMove?.(this._mapDirection(Direction.UP)); e.preventDefault(); break;
-      case 'ArrowDown':
-        cb.onMove?.(this._mapDirection(Direction.DOWN)); e.preventDefault(); break;
-      case 'ArrowLeft':
-        cb.onMove?.(this._mapDirection(Direction.LEFT)); e.preventDefault(); break;
-      case 'ArrowRight':
-        cb.onMove?.(this._mapDirection(Direction.RIGHT)); e.preventDefault(); break;
+      case 'ArrowUp':    cb.onMove?.(this._mapDirection(Direction.UP)); e.preventDefault(); break;
+      case 'ArrowDown':  cb.onMove?.(this._mapDirection(Direction.DOWN)); e.preventDefault(); break;
+      case 'ArrowLeft':  cb.onMove?.(this._mapDirection(Direction.LEFT)); e.preventDefault(); break;
+      case 'ArrowRight': cb.onMove?.(this._mapDirection(Direction.RIGHT)); e.preventDefault(); break;
       case 'z': case 'Z': cb.onUndo?.(); break;
       case 'r': case 'R': cb.onRestart?.(); break;
       case 'q': case 'Q': cb.onRotateLeft?.(); break;
@@ -76,32 +100,22 @@ export class InputHandler {
   }
 
   _onMouseDown(e) {
-    if (e.button === 0) {
-      this._dragging = true;
-      this._lastMouseX = e.clientX;
-      this._lastMouseY = e.clientY;
-    }
+    if (e.button === 0) { this._dragging = true; this._lastMouseX = e.clientX; this._lastMouseY = e.clientY; }
   }
 
   _onMouseMove(e) {
     if (!this._dragging || !this.enabled) return;
     const dx = e.clientX - this._lastMouseX;
     const dy = e.clientY - this._lastMouseY;
-    // Horizontal drag → rotation
     if (Math.abs(dx) > 60) {
-      if (dx > 0) this.callbacks.onRotateRight?.();
-      else this.callbacks.onRotateLeft?.();
+      if (dx > 0) this.callbacks.onRotateRight?.(); else this.callbacks.onRotateLeft?.();
       this._lastMouseX = e.clientX;
     }
-    // Vertical drag → tilt
     if (Math.abs(dy) > 30) {
-      if (dy > 0) this.callbacks.onTiltDown?.();
-      else this.callbacks.onTiltUp?.();
+      if (dy > 0) this.callbacks.onTiltDown?.(); else this.callbacks.onTiltUp?.();
       this._lastMouseY = e.clientY;
     }
   }
 
-  _onMouseUp() {
-    this._dragging = false;
-  }
+  _onMouseUp() { this._dragging = false; }
 }

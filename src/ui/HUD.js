@@ -1,5 +1,12 @@
 import { t, onLangChange } from '../i18n.js';
+import { EventBus } from '../patterns/behavioral.js';
 
+/**
+ * HUD — OBSERVER + MEDIATOR patterns.
+ *
+ * OBSERVER:  Subscribes to game events via EventBus for auto-updates.
+ * MEDIATOR:  Acts as a colleague — receives notifications from GameMediator.
+ */
 export class HUD {
   constructor(onMusicToggle) {
     this.el = document.getElementById('hud');
@@ -9,16 +16,31 @@ export class HUD {
     this.timerEl = document.getElementById('hud-timer');
     this.musicBtn = document.getElementById('hud-music');
     this._musicOn = true;
+    this.startTime = 0;
+    this.running = false;
+    this.elapsed = 0;
+
+    // ── OBSERVER: local event bus ──
+    this.events = new EventBus();
+    this._subscriptions = [];
+
     this.musicBtn.textContent = t('on');
     this.musicBtn.addEventListener('click', () => {
       onMusicToggle?.();
       this._musicOn = !this._musicOn;
       this.musicBtn.textContent = t(this._musicOn ? 'on' : 'off');
+      this.events.emit('hud:muteToggled', this._musicOn);
     });
     onLangChange(() => { this.musicBtn.textContent = t(this._musicOn ? 'on' : 'off'); });
-    this.startTime = 0;
-    this.running = false;
-    this.elapsed = 0;
+  }
+
+  /** OBSERVER: subscribe to a GameScene EventBus for auto-updates */
+  subscribeTo(gameEventBus) {
+    this._subscriptions.forEach(fn => fn());
+    this._subscriptions = [
+      gameEventBus.on('game:paused', () => this.pauseTimer()),
+      gameEventBus.on('game:resumed', () => this.resumeTimer()),
+    ];
   }
 
   show() { this.el.style.display = 'flex'; }
@@ -34,11 +56,7 @@ export class HUD {
     this.running = false;
   }
 
-  startTimer() {
-    this.startTime = performance.now();
-    this.running = true;
-  }
-
+  startTimer() { this.startTime = performance.now(); this.running = true; }
   pauseTimer() { if (this.running) { this.elapsed += performance.now() - this.startTime; this.running = false; } }
   resumeTimer() { if (!this.running) { this.startTime = performance.now(); this.running = true; } }
 
@@ -48,14 +66,11 @@ export class HUD {
     if (this.running) {
       const total = this.elapsed + (performance.now() - this.startTime);
       const secs = Math.floor(total / 1000);
-      const m = String(Math.floor(secs / 60)).padStart(2, '0');
-      const s = String(secs % 60).padStart(2, '0');
-      this.timerEl.textContent = `${m}:${s}`;
+      this.timerEl.textContent = `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
     }
   }
 
   getElapsedSeconds() {
-    const total = this.elapsed + (this.running ? performance.now() - this.startTime : 0);
-    return Math.floor(total / 1000);
+    return Math.floor((this.elapsed + (this.running ? performance.now() - this.startTime : 0)) / 1000);
   }
 }

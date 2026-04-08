@@ -1,5 +1,11 @@
-import { TileType, EntityType, Direction, MoveResult, DIR_VECTORS } from '../config.js';
+import { TileType, EntityType, MoveResult, DIR_VECTORS } from '../config.js';
+import { BoardMemento } from '../patterns/behavioral.js';
 
+/**
+ * Board — the Memento ORIGINATOR.
+ * Creates BoardMemento snapshots and restores from them.
+ * The Caretaker (StateManager/CommandHistory) stores the mementos.
+ */
 export class Board {
   constructor() {
     this.tiles = [];
@@ -8,6 +14,7 @@ export class Board {
     this.width = 0;
     this.height = 0;
     this.targetPositions = [];
+    this.boxesLocked = false;
   }
 
   loadLevel(level) {
@@ -35,20 +42,16 @@ export class Board {
     const nx = this.playerPos.x + dv.x;
     const ny = this.playerPos.y + dv.y;
 
-    if (this.getTile(nx, ny) === TileType.WALL || this.getTile(nx, ny) === TileType.EMPTY) {
+    if (this.getTile(nx, ny) === TileType.WALL || this.getTile(nx, ny) === TileType.EMPTY)
       return MoveResult.BLOCKED;
-    }
 
     if (this.getEntity(nx, ny) === EntityType.BOX) {
       if (this.boxesLocked) return MoveResult.BLOCKED;
-      const bx = nx + dv.x;
-      const by = ny + dv.y;
+      const bx = nx + dv.x, by = ny + dv.y;
       if (this.getTile(bx, by) === TileType.WALL || this.getTile(bx, by) === TileType.EMPTY ||
-          this.getEntity(bx, by) === EntityType.BOX) {
+          this.getEntity(bx, by) === EntityType.BOX)
         return MoveResult.BLOCKED;
-      }
       this.entities[by][bx] = EntityType.BOX;
-      this.entities[ny][nx] = EntityType.NONE;
       this.entities[ny][nx] = EntityType.PLAYER;
       this.entities[this.playerPos.y][this.playerPos.x] = EntityType.NONE;
       this.playerPos = { x: nx, y: ny };
@@ -62,21 +65,21 @@ export class Board {
   }
 
   isComplete() {
-    for (const t of this.targetPositions) {
-      if (this.entities[t.y][t.x] !== EntityType.BOX) return false;
-    }
-    return true;
+    return this.targetPositions.every(t => this.entities[t.y][t.x] === EntityType.BOX);
   }
 
-  getState() {
-    return {
-      entities: this.entities.map(r => [...r]),
-      playerPos: { ...this.playerPos },
-    };
+  // ── MEMENTO: create snapshot ──
+  createMemento() {
+    return new BoardMemento(this.entities, this.playerPos);
   }
 
-  setState(state) {
-    this.entities = state.entities.map(r => [...r]);
-    this.playerPos = { ...state.playerPos };
+  // ── MEMENTO: restore from snapshot ──
+  restoreMemento(memento) {
+    this.entities = memento.getEntities();
+    this.playerPos = memento.getPlayerPos();
   }
+
+  // Legacy compat — delegates to Memento
+  getState() { return { entities: this.entities.map(r => [...r]), playerPos: { ...this.playerPos } }; }
+  setState(state) { this.entities = state.entities.map(r => [...r]); this.playerPos = { ...state.playerPos }; }
 }

@@ -1,8 +1,13 @@
+import { BaseScene } from '../patterns/behavioral.js';
 import { PixelButton } from '../ui/PixelButton.js';
 
-export class LevelSelectScene {
+/**
+ * LevelSelectScene — TEMPLATE METHOD pattern.
+ * Extends BaseScene lifecycle: init() → buildUI() → onActivate().
+ */
+export class LevelSelectScene extends BaseScene {
   constructor(sceneManager, levelManager) {
-    this.sceneManager = sceneManager;
+    super(sceneManager);
     this.levelManager = levelManager;
     this.el = document.getElementById('level-select-screen');
     this.grid = this.el.querySelector('.level-grid');
@@ -13,30 +18,29 @@ export class LevelSelectScene {
     this.backContainer = this.el.querySelector('.level-select-back');
     this.page = 0;
     this.perPage = 20;
-    this._built = false;
   }
 
-  _buildOnce() {
-    if (this._built) return;
+  // Template step: one-time init
+  init() {
     this.prevBtn.addEventListener('click', () => { this.page--; this._renderGrid(); });
     this.nextBtn.addEventListener('click', () => { this.page++; this._renderGrid(); });
     this.backContainer.appendChild(PixelButton.create('back', () => this.sceneManager.switchTo('menu')));
-    this._built = true;
   }
 
-  activate() {
-    this._buildOnce();
+  buildUI() {}
+
+  // Template step: each activation
+  onActivate() {
     this._renderGrid();
     this.el.style.display = 'flex';
   }
 
-  deactivate() { this.el.style.display = 'none'; }
+  onDeactivate() { this.el.style.display = 'none'; }
 
   _renderGrid() {
     const levels = this.levelManager.getLevelList();
     const totalPages = Math.ceil(levels.length / this.perPage);
-    const start = this.page * this.perPage;
-    const pageLevels = levels.slice(start, start + this.perPage);
+    const pageLevels = levels.slice(this.page * this.perPage, (this.page + 1) * this.perPage);
 
     this.grid.replaceChildren();
 

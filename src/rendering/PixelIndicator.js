@@ -2,6 +2,9 @@ import { SliderIndicator } from './SliderIndicator.js';
 import { PIXEL_SIZE_DEFAULT, PIXEL_SIZE_MIN, PIXEL_SIZE_MAX } from '../config.js';
 import { t, onLangChange } from '../i18n.js';
 
+/**
+ * PixelIndicator — COMPOSITE (via SliderIndicator→SceneNode) + OBSERVER.
+ */
 export class PixelIndicator extends SliderIndicator {
   constructor() { super('pixel-indicator'); this._size = PIXEL_SIZE_DEFAULT; }
 
