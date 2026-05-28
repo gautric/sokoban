@@ -179,7 +179,7 @@ async function init() {
   sceneManager.switchTo('menu');
 
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'j' || e.key === 'J') toggleLang();
+    if (e.key === 'j' || e.key === 'J') { toggleLang(); e.preventDefault(); }
     inputChain.handle(e);
   });
 

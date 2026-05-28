@@ -23,6 +23,9 @@ const translations = {
     level_complete: 'LEVEL COMPLETE!', next_level: 'Next Level', replay: 'Replay',
     complete_moves: 'Moves:', complete_pushes: 'Pushes:', complete_time: 'Time:',
     tilt: 'tilt', zoom: 'zoom', pixel: 'pixel',
+    ctrl_title: 'Controls', ctrl_move: 'Move', ctrl_rotate: 'Rotate',
+    ctrl_zoom: 'Zoom', ctrl_undo: 'Undo', ctrl_restart: 'Restart',
+    ctrl_mute: 'Mute', ctrl_pause: 'Pause', ctrl_lang: 'Lang',
   },
   ja: {
     title: "キロのゴースト\n倉庫番", play: 'プレイ', level_select: 'レベル選択',
@@ -38,6 +41,9 @@ const translations = {
     level_complete: 'レベルクリア！', next_level: '次のレベル', replay: 'リプレイ',
     complete_moves: '手数:', complete_pushes: '押し:', complete_time: '時間:',
     tilt: '傾き', zoom: 'ズーム', pixel: 'ピクセル',
+    ctrl_title: '操作', ctrl_move: '移動', ctrl_rotate: '回転',
+    ctrl_zoom: 'ズーム', ctrl_undo: '戻す', ctrl_restart: 'リスタート',
+    ctrl_mute: 'ミュート', ctrl_pause: 'ポーズ', ctrl_lang: '言語',
   }
 };
 

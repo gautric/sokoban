@@ -201,11 +201,10 @@ canvas { display: block; }
 .level-nav { display: flex; gap: 12px; align-items: center; }
 .page-label { font-size: 22px; }
 
-/* HUD */
-#hud {
+/* Game Panels */
+.game-panel {
   display: none;
   position: absolute;
-  top: 10px; left: 10px;
   flex-direction: column;
   gap: 6px;
   font-size: 22px;
@@ -214,8 +213,10 @@ canvas { display: block; }
   border: 2px solid #7B61FF;
   z-index: 5;
 }
-.hud-row { display: flex; gap: 8px; }
-.hud-label { color: #7B61FF; }
+#hud { top: 10px; left: 10px; }
+#controls-list { top: 10px; right: 10px; }
+.hud-row, .controls-row { display: flex; gap: 8px; }
+.hud-label, .controls-title, .controls-key { color: #7B61FF; }
 .hud-toggle { color: #4CAF50; cursor: pointer; }
 
 /* Pause Menu */

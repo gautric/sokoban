@@ -10,6 +10,7 @@ import { EventBus } from '../patterns/behavioral.js';
 export class HUD {
   constructor(onMusicToggle) {
     this.el = document.getElementById('hud');
+    this.controlsEl = document.getElementById('controls-list');
     this.levelEl = document.getElementById('hud-level');
     this.movesEl = document.getElementById('hud-moves');
     this.pushesEl = document.getElementById('hud-pushes');
@@ -43,8 +44,8 @@ export class HUD {
     ];
   }
 
-  show() { this.el.style.display = 'flex'; }
-  hide() { this.el.style.display = 'none'; }
+  show() { this.el.style.display = 'flex'; this.controlsEl.style.display = 'flex'; }
+  hide() { this.el.style.display = 'none'; this.controlsEl.style.display = 'none'; }
 
   reset(levelName) {
     this.levelEl.textContent = levelName;

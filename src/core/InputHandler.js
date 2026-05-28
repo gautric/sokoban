@@ -73,23 +73,25 @@ export class InputHandler {
     if (!this.enabled) return;
     const cb = this.callbacks;
     switch (e.key) {
-      case 'ArrowUp':    cb.onMove?.(this._mapDirection(Direction.UP)); e.preventDefault(); break;
-      case 'ArrowDown':  cb.onMove?.(this._mapDirection(Direction.DOWN)); e.preventDefault(); break;
-      case 'ArrowLeft':  cb.onMove?.(this._mapDirection(Direction.LEFT)); e.preventDefault(); break;
-      case 'ArrowRight': cb.onMove?.(this._mapDirection(Direction.RIGHT)); e.preventDefault(); break;
+      case 'ArrowUp':    cb.onMove?.(this._mapDirection(Direction.UP)); break;
+      case 'ArrowDown':  cb.onMove?.(this._mapDirection(Direction.DOWN)); break;
+      case 'ArrowLeft':  cb.onMove?.(this._mapDirection(Direction.LEFT)); break;
+      case 'ArrowRight': cb.onMove?.(this._mapDirection(Direction.RIGHT)); break;
       case 'z': case 'Z': cb.onUndo?.(); break;
       case 'r': case 'R': cb.onRestart?.(); break;
       case 'q': case 'Q': cb.onRotateLeft?.(); break;
       case 'e': case 'E': cb.onRotateRight?.(); break;
       case 'm': case 'M': cb.onToggleMute?.(); break;
       case 'Escape': cb.onPause?.(); break;
-      case ' ': cb.onRotateRight?.(); e.preventDefault(); break;
+      case ' ': cb.onRotateRight?.(); break;
       case '+': case '=': cb.onZoomIn?.(); break;
       case '-': case '_': cb.onZoomOut?.(); break;
       case 'p': case 'P': cb.onTilt?.(); break;
       case '[': cb.onPixelDown?.(); break;
       case ']': cb.onPixelUp?.(); break;
+      default: return;
     }
+    e.preventDefault();
   }
 
   _onWheel(e) {
