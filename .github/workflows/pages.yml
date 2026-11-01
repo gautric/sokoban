@@ -1,0 +1,51 @@
+# Deploy Kiro's Ghost Sokoban to GitHub Pages (sokoban.autric.net).
+#
+# There is no build step: the game is vanilla JS ES modules loading Three.js from
+# a CDN, so the repository root *is* the site. The workflow gates on `make check`
+# (the project's only automated safety net) and then uploads the checkout as the
+# Pages artifact. `upload-pages-artifact` already excludes .git and .github.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege for the OIDC-based Pages deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deployments race; queue instead of cancelling a live one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Static checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: make check (JS syntax + levels + entrypoints)
+        run: make check
+
+  deploy:
+    name: Deploy
+    needs: check
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: .
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
