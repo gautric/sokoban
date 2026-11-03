@@ -73,7 +73,7 @@ stop: ## Stop whatever is listening on the serve port
 ## ---------------------------------------------------------------- checks
 
 .PHONY: check
-check: syntax levels entrypoints ## Run all static checks
+check: syntax levels entrypoints test ## Run all static checks + unit tests
 
 .PHONY: syntax
 syntax: ## Parse every JS module with node --check
@@ -105,15 +105,15 @@ entrypoints: ## Check that required entry files are present
 	if [ $$fail -ne 0 ]; then exit 1; fi; \
 	echo "Entrypoints OK"
 
+TEST_FILES := $(wildcard test/*.test.js)
+
 .PHONY: test
-test: ## Point at the manual test procedures (no test framework in this project)
-	@echo "No automated test suite: this is a browser game verified by hand."
-	@echo "Procedures:"
-	@echo "  aidlc-docs/construction/build-and-test/unit-test-instructions.md"
-	@echo "  aidlc-docs/construction/build-and-test/integration-test-instructions.md"
-	@echo "  aidlc-docs/construction/build-and-test/performance-test-instructions.md"
+test: ## Run the unit tests for the pure core (Node built-in runner, no deps)
+	@command -v node >/dev/null 2>&1 || { echo "node not found; skipping tests"; exit 0; }
+	@node --test $(TEST_FILES)
 	@echo ""
-	@echo "Start the game with: make run"
+	@echo "Note: unit tests cover pure core logic only. Full gameplay/rendering is"
+	@echo "verified by hand — procedures in aidlc-docs/construction/build-and-test/."
 
 ## ---------------------------------------------------------------- housekeeping
 

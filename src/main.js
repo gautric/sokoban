@@ -213,6 +213,10 @@ async function init() {
   }
   loop();
 
+  // ── Boot watchdog (index.html): signal that the game is running so the
+  //    CDN-failure overlay is cleared / never shown. ──
+  window.__bootOK?.();
+
   // ── Debug console ──
   if (DEBUG) {
     window.__registry = registry;
@@ -226,4 +230,9 @@ async function init() {
   }
 }
 
-init().catch(console.error);
+init().catch((err) => {
+  console.error(err);
+  // Surface a visible failure state instead of a blank screen (e.g. the level
+  // packs failed to load). The overlay + handler are defined in index.html.
+  window.__bootFail?.();
+});

@@ -6,7 +6,11 @@
  * Object.freeze() ensures immutability (true intrinsic state).
  */
 
-export const DEBUG = new URLSearchParams(window.location.search).has('debug');
+// Guarded so this module can also be imported outside the browser (e.g. the
+// Node test runner), where `window` does not exist. In the browser the value
+// is identical to before.
+export const DEBUG = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).has('debug');
 
 // ── FLYWEIGHT: frozen shared game constants ──
 export const TILE_SIZE = 1;
@@ -15,6 +19,8 @@ export const BOX_SIZE = 0.8;
 export const PLAYER_BOB_AMPLITUDE = 0.1;
 export const PLAYER_BOB_PERIOD = 2000;
 export const MOVE_LERP_DURATION = 110;
+export const MOVE_SETTLE_DURATION = 160;   // delay after a move before the board redraws / win is checked
+export const WIN_SCREEN_DELAY = 5000;      // auto-reveal of the level-complete screen after a win
 export const OCCLUSION_FADE_DURATION = 200;
 export const OCCLUSION_MIN_OPACITY = 0.15;
 export const CAMERA_ROTATION_DURATION = 300;

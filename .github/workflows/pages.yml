@@ -29,7 +29,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: make check (JS syntax + levels + entrypoints)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: make check (JS syntax + levels + entrypoints + unit tests)
         run: make check
 
   deploy:

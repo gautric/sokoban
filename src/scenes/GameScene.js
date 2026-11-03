@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Board } from '../core/Board.js';
-import { MoveResult, TILE_SIZE, PIXEL_SIZE_DEFAULT, PIXEL_SIZE_MIN, PIXEL_SIZE_MAX, PIXEL_SIZE_STEP, OPTIMAL_MOVES } from '../config.js';
+import { MoveResult, TileType, DIR_VECTORS, TILE_SIZE, PIXEL_SIZE_DEFAULT, PIXEL_SIZE_MIN, PIXEL_SIZE_MAX, PIXEL_SIZE_STEP, OPTIMAL_MOVES, MOVE_SETTLE_DURATION, WIN_SCREEN_DELAY } from '../config.js';
 import { IsometricCamera } from '../rendering/IsometricCamera.js';
 import { BoardRenderer } from '../rendering/BoardRenderer.js';
 import { PlayerRenderer } from '../rendering/PlayerRenderer.js';
@@ -249,10 +249,10 @@ export class GameScene {
       this.stateManager.incrementPushes();
       // ── MEDIATOR: notify audio via mediator ──
       this.mediator.notify(this, 'pushed', { moves: this.stateManager.getMoveCount(), pushes: this.stateManager.getPushCount() });
-      const dv = { 0:{x:0,y:-1}, 1:{x:0,y:1}, 2:{x:-1,y:0}, 3:{x:1,y:0} }[direction];
+      const dv = DIR_VECTORS[direction];
       const bx = this.board.playerPos.x + dv.x, by = this.board.playerPos.y + dv.y;
       this.boardRenderer.animateBoxPush(this.board.playerPos.x, this.board.playerPos.y, bx, by, this.board);
-      if (this.board.getTile(bx, by) === 3) setTimeout(() => this.audioManager.sfx?.playBoxOnTarget(), 100);
+      if (this.board.getTile(bx, by) === TileType.TARGET) setTimeout(() => this.audioManager.sfx?.playBoxOnTarget(), 100);
     } else {
       this.mediator.notify(this, 'moved', { moves: this.stateManager.getMoveCount(), pushes: this.stateManager.getPushCount() });
     }
@@ -264,7 +264,7 @@ export class GameScene {
       if (result !== MoveResult.PUSHED) this.boardRenderer.updateBoard(this.board);
       this.playerRenderer.setMoving(false);
       if (this.board.isComplete()) this._onWin();
-    }, 160);
+    }, MOVE_SETTLE_DURATION);
   }
 
   _handleUndo() {
@@ -336,7 +336,7 @@ export class GameScene {
 
     this._winKeyHandler = (e) => { if (e.key === ' ') showComplete(); };
     window.addEventListener('keydown', this._winKeyHandler);
-    this._winTimer = setTimeout(showComplete, 5000);
+    this._winTimer = setTimeout(showComplete, WIN_SCREEN_DELAY);
   }
 
   update(dt) {
