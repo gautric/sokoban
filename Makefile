@@ -112,8 +112,19 @@ test: ## Run the unit tests for the pure core (Node built-in runner, no deps)
 	@command -v node >/dev/null 2>&1 || { echo "node not found; skipping tests"; exit 0; }
 	@node --test $(TEST_FILES)
 	@echo ""
-	@echo "Note: unit tests cover pure core logic only. Full gameplay/rendering is"
-	@echo "verified by hand — procedures in aidlc-docs/construction/build-and-test/."
+	@echo "Note: unit tests cover the pure core, levels (solvable), i18n, import map."
+	@echo "Rendering is verified by hand — aidlc-docs/construction/build-and-test/."
+
+.PHONY: lint
+lint: ## Lint JS with ESLint 9 via npx (eslint.config.js; nothing installed in the repo)
+	@command -v npx >/dev/null 2>&1 || { echo "npx not found; install Node.js to lint"; exit 1; }
+	@npx --yes eslint@9 --max-warnings 0 .
+	@echo "Lint OK"
+
+.PHONY: par
+par: ## Recompute OPTIMAL_MOVES (move-optimal solver) after editing levels/*.sok
+	@node --max-old-space-size=4096 test/support/optimal-moves.mjs
+	@echo "Paste the array above into src/config.js"
 
 ## ---------------------------------------------------------------- housekeeping
 

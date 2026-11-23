@@ -1,0 +1,12 @@
+{
+  "name": "kiro-ghost-sokoban",
+  "private": true,
+  "description": "Marks src/ and test/ as ES modules for Node (node --check, node --test). No dependencies, no build: the browser loads src/main.js directly.",
+  "type": "module",
+  "engines": {
+    "node": ">=18.19"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  }
+}

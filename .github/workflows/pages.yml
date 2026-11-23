@@ -2,7 +2,7 @@
 #
 # There is no build step: the game is vanilla JS ES modules loading Three.js from
 # a CDN, so the repository root *is* the site. The workflow gates on `make check`
-# (the project's only automated safety net) and then uploads the checkout as the
+# (syntax, levels, unit tests) and `make lint` (ESLint), then uploads the checkout as the
 # Pages artifact. `upload-pages-artifact` already excludes .git and .github.
 
 name: Deploy to GitHub Pages
@@ -34,6 +34,8 @@ jobs:
           node-version: '24'
       - name: make check (JS syntax + levels + entrypoints + unit tests)
         run: make check
+      - name: make lint (ESLint 9 via npx)
+        run: make lint
 
   deploy:
     name: Deploy

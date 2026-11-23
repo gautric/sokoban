@@ -11,10 +11,10 @@
  * 20. Strategy                — ScoringStrategy: swap star-rating algorithms at runtime
  * 21. Template Method         — BaseScene: define scene lifecycle, subclasses fill in steps
  * 22. Visitor                 — TileVisitor: perform operations on board tiles polymorphically
- * 23. Interpreter             — CheatCodeInterpreter: parse simple cheat-code DSL
+ * 23. Interpreter             — see src/core/LevelParser.js (CHAR_MAP is the .sok grammar)
  */
 
-import { MoveResult, DIR_VECTORS } from '../config.js';
+import { MoveResult, TileType, EntityType } from '../config.js';
 
 // ─── 13. CHAIN OF RESPONSIBILITY — InputChain ──────────────────────────────
 // Each handler tries to process the input. If it can't, it passes to the next.
@@ -237,8 +237,8 @@ class GameState {
   constructor(machine) { this.machine = machine; }
   enter() {}
   exit() {}
-  handleInput(input) {} // eslint-disable-line no-unused-vars
-  update(dt) {} // eslint-disable-line no-unused-vars
+  handleInput(input) {}
+  update(dt) {}
 }
 
 export class PlayingState extends GameState {
@@ -293,7 +293,7 @@ export class GameStateMachine {
 // could switch to time-based or combined scoring.
 
 class ScoringStrategy {
-  calculate(levelId, moves, pushes, time, optimal) { return 1; } // eslint-disable-line no-unused-vars
+  calculate(levelId, moves, pushes, time, optimal) { return 1; }
 }
 
 export class MoveBasedScoring extends ScoringStrategy {
@@ -349,8 +349,8 @@ export class BaseScene {
   onActivate() {}
   onDeactivate() {}
   teardownUI() {}
-  update(dt) {} // eslint-disable-line no-unused-vars
-  render(renderer) {} // eslint-disable-line no-unused-vars
+  update(dt) {}
+  render(renderer) {}
 }
 
 // ─── 22. VISITOR — TileVisitor ─────────────────────────────────────────────
@@ -358,11 +358,11 @@ export class BaseScene {
 // E.g., count boxes on targets, find deadlocks, export to string.
 
 export class TileVisitor {
-  visitWall(x, y) {} // eslint-disable-line no-unused-vars
-  visitFloor(x, y) {} // eslint-disable-line no-unused-vars
-  visitTarget(x, y) {} // eslint-disable-line no-unused-vars
-  visitBox(x, y, onTarget) {} // eslint-disable-line no-unused-vars
-  visitPlayer(x, y) {} // eslint-disable-line no-unused-vars
+  visitWall(x, y) {}
+  visitFloor(x, y) {}
+  visitTarget(x, y) {}
+  visitBox(x, y, onTarget) {}
+  visitPlayer(x, y, onTarget) {}
 }
 
 export class BoardStatsVisitor extends TileVisitor {
@@ -382,66 +382,21 @@ export class BoardExportVisitor extends TileVisitor {
   visitFloor(x, y) { this._grid[y][x] = ' '; }
   visitTarget(x, y) { this._grid[y][x] = '.'; }
   visitBox(x, y, onTarget) { this._grid[y][x] = onTarget ? '*' : '$'; }
-  visitPlayer(x, y) { this._grid[y][x] = '@'; }
+  visitPlayer(x, y, onTarget) { this._grid[y][x] = onTarget ? '+' : '@'; }
   toString() { return this._grid.map(r => r.join('')).join('\n'); }
 }
 
 export function acceptBoard(board, visitor) {
-  const { TileType, EntityType } = await_config();
   for (let y = 0; y < board.height; y++) {
     for (let x = 0; x < board.width; x++) {
       const tile = board.tiles[y][x];
       const entity = board.entities[y][x];
-      if (tile === 1) visitor.visitWall(x, y);
-      else if (tile === 3) visitor.visitTarget(x, y);
-      else if (tile === 2) visitor.visitFloor(x, y);
-      if (entity === 2) visitor.visitBox(x, y, tile === 3);
-      if (entity === 1) visitor.visitPlayer(x, y);
-    }
-  }
-}
-
-// Sync version using raw tile type values from config
-function await_config() {
-  return { TileType: { WALL: 1, FLOOR: 2, TARGET: 3 }, EntityType: { PLAYER: 1, BOX: 2 } };
-}
-
-// ─── 23. INTERPRETER — CheatCodeInterpreter ────────────────────────────────
-// Parses a simple DSL for cheat codes / debug commands.
-// Grammar: "skip <n>" | "win" | "god" | "undo <n>" | "set moves <n>"
-
-export class CheatCodeInterpreter {
-  constructor(context) { this._ctx = context; }
-
-  interpret(input) {
-    const tokens = input.trim().toLowerCase().split(/\s+/);
-    if (!tokens.length) return { ok: false, msg: 'empty' };
-
-    switch (tokens[0]) {
-      case 'skip': {
-        const n = parseInt(tokens[1]) || 1;
-        this._ctx.skipLevels?.(n);
-        return { ok: true, msg: `Skipped ${n} level(s)` };
-      }
-      case 'win':
-        this._ctx.instantWin?.();
-        return { ok: true, msg: 'Level completed' };
-      case 'god':
-        this._ctx.toggleGodMode?.();
-        return { ok: true, msg: 'God mode toggled' };
-      case 'undo': {
-        const n = parseInt(tokens[1]) || 1;
-        for (let i = 0; i < n; i++) this._ctx.undo?.();
-        return { ok: true, msg: `Undone ${n} move(s)` };
-      }
-      case 'set':
-        if (tokens[1] === 'moves' && tokens[2]) {
-          this._ctx.setMoves?.(parseInt(tokens[2]));
-          return { ok: true, msg: `Moves set to ${tokens[2]}` };
-        }
-        return { ok: false, msg: `Unknown set target: ${tokens[1]}` };
-      default:
-        return { ok: false, msg: `Unknown command: ${tokens[0]}` };
+      const onTarget = tile === TileType.TARGET;
+      if (tile === TileType.WALL) visitor.visitWall(x, y);
+      else if (onTarget) visitor.visitTarget(x, y);
+      else if (tile === TileType.FLOOR) visitor.visitFloor(x, y);
+      if (entity === EntityType.BOX) visitor.visitBox(x, y, onTarget);
+      if (entity === EntityType.PLAYER) visitor.visitPlayer(x, y, onTarget);
     }
   }
 }

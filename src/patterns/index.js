@@ -5,6 +5,7 @@
  * GoF STRUCTURAL (7):  Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy
  * GoF BEHAVIORAL (11): Chain of Responsibility, Command, Iterator, Mediator, Memento,
  *                      Observer, State, Strategy, Template Method, Visitor, Interpreter
+ *                      (Interpreter lives in src/core/LevelParser.js: the .sok grammar)
  *
  * GAME PROGRAMMING PATTERNS (Robert Nystrom):
  * Sequencing (3):      Double Buffer, Game Loop, Update Method
@@ -20,7 +21,7 @@ export { GameRegistry, WallMeshCreator, FloorMeshCreator, BoxMeshCreator, PixelT
 export { TouchInputAdapter, ThreeJSRenderAPI, GameRenderer, SceneNode, LoggingAudioDecorator, GameFacade, TextureCache, LazyAudioProxy } from './structural.js';
 
 // ── GoF Behavioral ──
-export { UIInputHandler, GameInputHandler, buildInputChain, MoveCommand, CommandHistory, LevelIterator, GameMediator, BoardMemento, MementoCaretaker, EventBus, PlayingState, PausedState, WonState, GameStateMachine, MoveBasedScoring, TimeBasedScoring, CombinedScoring, ScoringContext, BaseScene, TileVisitor, BoardStatsVisitor, BoardExportVisitor, acceptBoard, CheatCodeInterpreter } from './behavioral.js';
+export { UIInputHandler, GameInputHandler, buildInputChain, MoveCommand, CommandHistory, LevelIterator, GameMediator, BoardMemento, MementoCaretaker, EventBus, PlayingState, PausedState, WonState, GameStateMachine, MoveBasedScoring, TimeBasedScoring, CombinedScoring, ScoringContext, BaseScene, TileVisitor, BoardStatsVisitor, BoardExportVisitor, acceptBoard } from './behavioral.js';
 
 // ── Game Programming Patterns ──
 export { DoubleBuffer, GameLoop, GameEntity, EntityWorld, OP, BytecodeVM, SandboxEntity, EntityType, TypedEntity, GameComponent, ComponentEntity, EventQueue, ServiceLocator, ParticleSOA, DirtyFlag, ObjectPool, SpatialGrid } from './game-patterns.js';

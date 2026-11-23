@@ -1,5 +1,5 @@
 import { TileType, EntityType } from '../config.js';
-import { LevelBuilder } from '../patterns/creational.js';
+import { LevelBuilder } from '../patterns/level-builder.js';
 
 /**
  * LevelParser — BUILDER + INTERPRETER patterns.

@@ -9,7 +9,8 @@ runtime.
 
 **No build step.** Pure vanilla JavaScript ES modules loaded directly by the browser.
 No bundler, no `npm install`, no `node_modules`. Three.js (r0.160.0) is pulled from a
-CDN via an import map in `index.html`.
+CDN via an import map in `index.html`, with Subresource Integrity hashes. The
+`package.json` has no dependencies: it only marks the code as ES modules for Node.
 
 ## Running
 
@@ -22,10 +23,14 @@ make serve   # just serve the current directory on http://localhost:8080 (PORT=x
 make stop    # stop whatever is listening on the serve port
 make check   # static checks (JS syntax + levels + entrypoints) and the unit tests
 make test    # just the unit tests (Node's built-in runner, no dependencies)
+make lint    # ESLint 9 through npx (nothing installed in the repo)
+make par     # recompute the per-level par move counts after editing levels
 ```
 
-Add `?debug` to the URL (`http://localhost:8080/?debug`) to enable verbose audio
-logging and the `window.__cheat` / `__services` / `__registry` console hooks.
+Requires Node.js 18.19 or newer for the checks (CI uses Node 24).
+
+Add `?log` to the URL (`http://localhost:8080/?log`) for log mode: game events
+(scenes, levels, moves, audio) are printed to the browser console. There are no cheats.
 
 ## Controls
 
@@ -41,14 +46,18 @@ Mouse drag rotates the camera and the scroll wheel zooms; touch swipes map to mo
 
 ## Levels
 
-Levels use the standard Sokoban text format (`.sok`) in `levels/`. The packs shipped are
-Microban and Microban II by David W. Skinner. See `CLAUDE.md` for the grid grammar
+Levels use the standard Sokoban text format (`.sok`) in `levels/`. The game ships 40
+levels: Microban 1–22 and Microban II 1–18 by David W. Skinner, unchanged. A built-in
+solver test proves every level can be finished, and the star rating compares your moves
+with each level's true minimum. See `CLAUDE.md` for the grid grammar
 (`#` wall, `@` player, `$` box, `.` target, `*` box on target, `+` player on target).
 
 ## Tests
 
-The pure game logic (`src/core/`) carries no Three.js dependency, so it is unit-tested
-with Node's built-in test runner — no dependencies to install:
+The pure game logic (`src/core/`) carries no Three.js dependency (a test enforces it),
+so it is unit-tested with Node's built-in test runner — no dependencies to install.
+The suite also checks every level is solvable, EN/JA translations match, and the CDN
+import map is pinned and hashed:
 
 ```bash
 make test

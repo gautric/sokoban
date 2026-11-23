@@ -133,9 +133,11 @@
   </div>
 
   <!-- The import map resolves Three.js from a CDN (no local copy, no build step).
-       `integrity` adds Subresource Integrity for the core module where the browser
-       supports import-map integrity (others ignore it gracefully). Availability —
-       a CDN being down — is handled separately by the boot watchdog, not SRI. -->
+       `integrity` adds Subresource Integrity for the core module and every addon
+       module loaded (including the addons' own relative imports) where the browser
+       supports import-map integrity (others ignore it gracefully). Adding a new
+       addon? Add its hash too — test/importmap.test.js fails otherwise.
+       Availability — a CDN being down — is handled by the boot watchdog, not SRI. -->
   <script type="importmap">
     {
       "imports": {
@@ -143,7 +145,15 @@
         "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
       },
       "integrity": {
-        "https://unpkg.com/three@0.160.0/build/three.module.js": "sha384-61S/Nu32S3E5+n+KpCOTb2eRYps6fVKm+9Gz1QBvSePFthb46f063Aa/qe/lykFZ"
+        "https://unpkg.com/three@0.160.0/build/three.module.js": "sha384-61S/Nu32S3E5+n+KpCOTb2eRYps6fVKm+9Gz1QBvSePFthb46f063Aa/qe/lykFZ",
+        "https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js": "sha384-L+Ns9skCAqjab7aG8LH5VLknBCoENW7p37sOj39jnITwlWZFabWc29JwzgYf6ygy",
+        "https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/MaskPass.js": "sha384-SDM80tiGflO8UDV/QzR/mASjcc/+wF7KfRVFNHJUIPcTctwoPI8GoWVTlccZw7V4",
+        "https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/OutputPass.js": "sha384-RJJc+pg+Ue2ZwXlf8n78cPHMiHrqfr+AxxabF5vkXMXjNPF6nSUoqb20IQXkMo6c",
+        "https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/Pass.js": "sha384-gSqIFh8vMmp1veyOysIS3KPVUl/A5JPefYvW4b89OeYeW0bwkrjN7qcC1h0XJK/K",
+        "https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/RenderPixelatedPass.js": "sha384-iHnGkNZstikwTp93hzVuC4XnJM7Ukw2g89cE9ZBr99C63cAMxv0nnYUT/zZJFZFw",
+        "https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/ShaderPass.js": "sha384-zetU6HhR/vTtgSvnS9DE+GQPZhVT/ZOSLa/1+DSM6rkM9hvBgQWr9bCEosZt93ch",
+        "https://unpkg.com/three@0.160.0/examples/jsm/shaders/CopyShader.js": "sha384-kzVlcj2amFaRNIWZ5zE0PmIN+QTNWWvrgKk31S8N/7w0nf7Qq3xqxHRLbD2UPPSl",
+        "https://unpkg.com/three@0.160.0/examples/jsm/shaders/OutputShader.js": "sha384-fT4woAJJtXcAxElHG1cGfIZkiSxaj7u+24LHlfNVDZZ9aSjZvr2emMGPmcD9eF0V"
       }
     }
   </script>

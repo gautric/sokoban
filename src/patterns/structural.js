@@ -10,7 +10,7 @@
  * 12. Proxy     — LazyAudioProxy: defer AudioContext creation until first use
  */
 
-import { Direction, ROTATION_MAP } from '../config.js';
+import { Direction } from '../config.js';
 
 // ─── 6. ADAPTER — TouchInputAdapter ────────────────────────────────────────
 // Adapts touch/swipe gestures into the same callback interface as InputHandler.
@@ -61,8 +61,8 @@ export class TouchInputAdapter {
 
 class RenderAPI {
   clear() {}
-  renderScene(scene, camera) {} // eslint-disable-line no-unused-vars
-  setSize(w, h) {} // eslint-disable-line no-unused-vars
+  renderScene(scene, camera) {}
+  setSize(w, h) {}
 }
 
 export class ThreeJSRenderAPI extends RenderAPI {
@@ -126,8 +126,9 @@ export class SceneNode {
 // Same interface — game code doesn't know it's decorated.
 
 export class LoggingAudioDecorator {
-  constructor(audioManager) {
+  constructor(audioManager, sink = null) {
     this._inner = audioManager;
+    this._sink = sink;   // optional (action) => void, e.g. the ?log console logger
     this.log = [];
   }
 
@@ -141,7 +142,10 @@ export class LoggingAudioDecorator {
   get initialized() { return this._inner.initialized; }
   get ctx() { return this._inner.ctx; }
 
-  _log(action) { this.log.push({ action, time: Date.now() }); }
+  _log(action) {
+    this.log.push({ action, time: Date.now() });
+    this._sink?.(action);
+  }
   getLog() { return this.log; }
 }
 

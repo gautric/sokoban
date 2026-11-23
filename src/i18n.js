@@ -8,7 +8,8 @@ import { EventBus } from './patterns/behavioral.js';
  *            to 'lang:changed' events for automatic UI updates.
  */
 
-const translations = {
+// Exported read-only for the unit tests (EN/JA key parity).
+export const translations = {
   en: {
     title: "Kiro's Ghost\nSokoban", play: 'Play', level_select: 'Level Select',
     how_to_play: 'How to Play', how_title: 'HOW TO PLAY',
@@ -56,14 +57,21 @@ const langBus = new EventBus();
 export function t(key) { return translations[lang]?.[key] ?? key; }
 export function getLang() { return lang; }
 
+// Render "line1\nline2" as text nodes separated by <br> — no innerHTML, so a
+// translation can never inject markup.
+function setMultiline(el, text) {
+  const parts = text.split('\n');
+  el.replaceChildren(...parts.flatMap((p, i) =>
+    i === 0 ? [document.createTextNode(p)] : [document.createElement('br'), document.createTextNode(p)]));
+}
+
 export function toggleLang() {
   lang = lang === 'en' ? 'ja' : 'en';
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    el.tagName === 'H1'
-      ? el.innerHTML = t(key).replace('\n', '<br>')
-      : el.textContent = t(key);
+    if (el.tagName === 'H1') setMultiline(el, t(key));
+    else el.textContent = t(key);
   });
   langBus.emit('lang:changed', lang);
 }

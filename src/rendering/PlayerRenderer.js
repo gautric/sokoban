@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DEBUG, TILE_SIZE, PLAYER_BOB_AMPLITUDE, PLAYER_BOB_PERIOD, PARTICLE_COLOR, PARTICLE_LIFETIME, PARTICLE_SPAWN_RATE_IDLE, PARTICLE_SPAWN_RATE_MOVING, MOVE_LERP_DURATION, ROTATION_MAP, Direction } from '../config.js';
+import { TILE_SIZE, PLAYER_BOB_AMPLITUDE, PLAYER_BOB_PERIOD, PARTICLE_COLOR, PARTICLE_LIFETIME, PARTICLE_SPAWN_RATE_IDLE, PARTICLE_SPAWN_RATE_MOVING, MOVE_LERP_DURATION, ROTATION_MAP, Direction } from '../config.js';
 import { EventBus } from '../patterns/behavioral.js';
 
 /**
@@ -15,7 +15,7 @@ class PlayerState {
   constructor(renderer) { this.r = renderer; }
   enter() {}
   exit() {}
-  update(dt) {} // eslint-disable-line no-unused-vars
+  update(dt) {}
 }
 
 class IdleState extends PlayerState {
@@ -144,9 +144,6 @@ export class PlayerRenderer {
       this.sprite = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.05), mat);
       this.sprite.position.set(this.gridX * TILE_SIZE, 0.6, this.gridY * TILE_SIZE);
       this.scene.add(this.sprite);
-      if (DEBUG) {
-        this.sprite.add(new THREE.AxesHelper(0.8));
-      }
     }, true);
 
     loadSVG((tex) => {
