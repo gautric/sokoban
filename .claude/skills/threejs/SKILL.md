@@ -1,6 +1,6 @@
 ---
 name: threejs
-description: Work with Three.js r0.160.0 in this repo — meshes, materials, textures, lights, shadows, cameras, render targets, post-processing, addons. Use for any change in src/rendering/, scene setup in src/scenes/, or the WebGLRenderer in src/main.js.
+description: Work with Three.js r0.160.0 in this repo — meshes, materials, textures, lights, shadows, cameras, render targets, post-processing, addons. Use for any change in src/rendering/, scene setup in src/scenes/, or the WebGLRenderer in src/app/renderer.js.
 ---
 
 # Three.js (r0.160.0 via CDN importmap)
@@ -20,13 +20,13 @@ description: Work with Three.js r0.160.0 in this repo — meshes, materials, tex
 
 ## Where Three.js is allowed
 
-Only in `src/rendering/`, `src/scenes/`, `src/main.js` and `src/patterns/` adapters.
+Only in `src/rendering/`, `src/scenes/`, `src/app/renderer.js` and `src/patterns/` adapters.
 **Never in `src/core/`.** Renderers read plain board data (tiles, entities, positions);
 the board never knows about meshes.
 
 ## Project specifics
 
-- Renderer is created in `src/main.js`: `antialias: false`, `setPixelRatio(1)`,
+- Renderer is created in `src/app/renderer.js`: `antialias: false`, `setPixelRatio(1)`,
   `shadowMap.enabled = true`, `autoClear = false` (scenes clear and may render a second
   viewport — the minimap). Keep pixel ratio at 1: the pixel-art look depends on it.
 - Camera: `src/rendering/IsometricCamera.js` drives a `PerspectiveCamera` at an iso

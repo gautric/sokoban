@@ -4,7 +4,7 @@ import { BoardMemento } from '../patterns/behavioral.js';
 /**
  * Board — the Memento ORIGINATOR.
  * Creates BoardMemento snapshots and restores from them.
- * The Caretaker (StateManager/CommandHistory) stores the mementos.
+ * MoveCommand holds the mementos; CommandHistory is the caretaker.
  */
 export class Board {
   constructor() {
@@ -78,8 +78,4 @@ export class Board {
     this.entities = memento.getEntities();
     this.playerPos = memento.getPlayerPos();
   }
-
-  // Legacy compat — delegates to Memento
-  getState() { return { entities: this.entities.map(r => [...r]), playerPos: { ...this.playerPos } }; }
-  setState(state) { this.entities = state.entities.map(r => [...r]); this.playerPos = { ...state.playerPos }; }
 }

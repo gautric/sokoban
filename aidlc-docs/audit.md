@@ -148,3 +148,10 @@
 **Context**: Git operation requested by user
 
 ---
+## Git - Commit
+**Timestamp**: 2026-11-23T19:12:17Z
+**User Input**: "Commite sur une branche et ouvre une PR"
+**AI Response**: On branch refactor/architecture-pass: committed the second architecture pass (main.js split into src/app/, InputHandler moved to src/input/, GameFacade runs the loop, MoveCommand keeps a BoardMemento, SceneLighting and PixelPostProcess extracted, showcase objects removed; fixes double swipe move and push count on undo). Pushed and opened a PR to main.
+**Context**: Git operation requested by user
+
+---

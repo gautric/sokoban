@@ -5,7 +5,7 @@
  * 14. Command                 — MoveCommand: encapsulate moves as objects for undo/redo
  * 15. Iterator                — LevelIterator: traverse levels without exposing internal array
  * 16. Mediator                — GameMediator: coordinates subsystems without direct coupling
- * 17. Memento                 — BoardMemento: capture/restore board state for undo
+ * 17. Memento                 — BoardMemento: board snapshot held by each MoveCommand
  * 18. Observer                — EventBus: pub/sub for game events (move, win, pause, etc.)
  * 19. State                   — GameStateMachine: playing/paused/won states with transitions
  * 20. Strategy                — ScoringStrategy: swap star-rating algorithms at runtime
@@ -63,23 +63,25 @@ export class MoveCommand {
   constructor(board, direction) {
     this.board = board;
     this.direction = direction;
-    this._prevState = null;
+    this.memento = null;   // MEMENTO: board snapshot taken before the move
     this._result = null;
   }
 
   execute() {
-    this._prevState = this.board.getState();
+    this.memento = this.board.createMemento();
     this._result = this.board.tryMove(this.direction);
     return this._result;
   }
 
   undo() {
-    if (this._prevState) this.board.setState(this._prevState);
+    if (this.memento) this.board.restoreMemento(this.memento);
   }
 
   getResult() { return this._result; }
 }
 
+// CommandHistory is also the MEMENTO caretaker: each command it keeps holds
+// the snapshot needed to undo it.
 export class CommandHistory {
   constructor() { this._history = []; this._pointer = -1; }
 
@@ -93,11 +95,12 @@ export class CommandHistory {
     return result;
   }
 
+  /** Undo the last command. Returns that command, or null if there is none. */
   undo() {
-    if (this._pointer < 0) return false;
-    this._history[this._pointer].undo();
-    this._pointer--;
-    return true;
+    if (this._pointer < 0) return null;
+    const command = this._history[this._pointer--];
+    command.undo();
+    return command;
   }
 
   redo() {
@@ -176,7 +179,7 @@ export class GameMediator {
 
 // ─── 17. MEMENTO — BoardMemento ────────────────────────────────────────────
 // Captures board state as an opaque token. The Board (originator) creates it;
-// the StateManager (caretaker) stores it. Neither exposes internals.
+// MoveCommand keeps it and CommandHistory is the caretaker.
 
 export class BoardMemento {
   constructor(entities, playerPos) {

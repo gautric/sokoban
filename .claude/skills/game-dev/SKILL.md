@@ -26,10 +26,10 @@ input (InputHandler / TouchInputAdapter)
 
 ## Game loop
 
-`requestAnimationFrame` in `src/main.js` calls `sceneManager.update(dt)` then
+`requestAnimationFrame` in `GameFacade` (`src/patterns/structural.js`) calls `sceneManager.update(dt)` then
 `render(renderer)`.
 
-- Everything time-based uses `dt` in seconds. Clamp big `dt` (tab switch) before use.
+- Everything time-based uses `dt` in milliseconds. Clamp big `dt` (tab switch) before use.
 - Logic is instant (grid step); visuals lerp toward the logical state. Never wait for an
   animation to finish before updating the model. Buffer or ignore input while a push
   animation runs, as the existing code does.
@@ -46,7 +46,7 @@ author credit lines (`Collection:`, `Author:`).
 
 ## Input
 
-Key map is in `src/core/InputHandler.js` (and in `/CLAUDE.md`). When adding a key:
+Key map is in `src/input/InputHandler.js` (and in `/CLAUDE.md`). When adding a key:
 check it is free, add it to the HUD/help text in **both EN and JA** (`src/i18n.js`),
 and support touch if it is a gameplay action.
 

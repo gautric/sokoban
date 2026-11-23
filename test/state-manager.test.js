@@ -5,6 +5,7 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { StateManager } from '../src/core/StateManager.js';
+import { MoveResult } from '../src/config.js';
 
 class MemoryStorage {
   constructor() { this.map = new Map(); }
@@ -54,7 +55,7 @@ test('all keys are namespaced kiro-sokoban-*', () => {
 
 test('session round-trip restores counters, clearSession removes it', () => {
   const a = new StateManager();
-  a.incrementMoves(); a.incrementMoves(); a.incrementPushes();
+  a.recordMove(MoveResult.MOVED); a.recordMove(MoveResult.PUSHED);
   a.saveSession(7);
 
   const b = new StateManager();
