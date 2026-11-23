@@ -40,14 +40,15 @@ runs both before deploying. Unit tests live in `test/*.test.js` and cover:
 
 | Test file | Guards |
 |---|---|
-| `board`, `undo`, `scoring` | Sokoban rules, Memento undo, star rating |
+| `board`, `undo`, `scoring` | Sokoban rules, Command + Memento undo (moves and pushes), star rating |
 | `state-manager` | localStorage defaults, bad JSON, best scores, session |
 | `levels` | every `.sok` puzzle parses, walls closed, **solvable**, par table size |
 | `level-parser`, `visitor` | `.sok` grammar, parse → export round trip |
 | `i18n` | EN/JA key parity, every `data-i18n` / `t('key')` exists |
 | `log`, `no-cheat` | log mode output; no cheat code, `window.__*` hook or `DEBUG` flag in `src/` |
 | `importmap` | Three.js pinned, every imported CDN module has an SRI hash |
-| `core-boundary` | `src/core/` never reaches `three` or `src/rendering/` |
+| `core-boundary` | `src/core/` never reaches `three` or `src/rendering/`, never touches `window`/`document` |
+| `app` | `GameFacade` init / loop / resize, log-mode wiring |
 
 `test/support/solver.js` is a small Sokoban solver used by the tests and `make par`.
 Rendering and game feel are still verified by hand (procedures in
@@ -62,8 +63,10 @@ one comes back.
 
 ## Architecture
 
-Entry point is `index.html` → `src/main.js`. `main.js` constructs every subsystem, wires
-them together, starts scenes, and runs a `requestAnimationFrame` loop that calls
+Entry point is `index.html` → `src/main.js`. `main.js` is short: it calls
+`app/createGame.js` (the composition root, the only place that builds and wires the
+concrete subsystems), hooks the global `J` key and window resize, then starts
+`GameFacade` (`patterns/structural.js`), whose `requestAnimationFrame` loop calls
 `sceneManager.update(dt)` then `sceneManager.render(renderer)`.
 
 ```
@@ -71,17 +74,25 @@ src/
   config.js            Frozen shared constants + enums (TileType, EntityType,
                        Direction, MoveResult, DIR_VECTORS). LOG flag (?log). Tunables for
                        camera tilt/zoom, lerp durations, particle params, OPTIMAL_MOVES.
-  main.js              Bootstrap + game loop. Instantiates and wires all subsystems.
+  main.js              Entry point: createGame(), global keys, resize, start the loop.
   i18n.js              EN/JA translations, lang toggle (key J), data-i18n DOM updates.
   log.js               Log mode (?log): scoped console logger, silent otherwise.
+
+  app/                 Composition root (no game rules here).
+    createGame.js      Builds every subsystem once, wires them, returns the Facade.
+    renderer.js        WebGLRenderer behind the Bridge (GameRenderer).
+    audio.js           Lazy audio Proxy + log Decorator; unlock on first input.
+    logMode.js         ?log: subscribes to scene/game events and prints them.
 
   core/                Pure game logic — NO Three.js in here.
     Board.js           Grid model. tryMove() is the Sokoban rules engine; isComplete()
                        checks win. Also the Memento originator (snapshots for undo).
     LevelParser.js     Parses the .sok (Sokoban) text format into level objects.
     LevelManager.js    Loads/holds level packs, star ratings, next-level logic.
-    StateManager.js    Progress/audio/session persistence via localStorage.
-    InputHandler.js    Keyboard → gameplay callbacks (key map below).
+    StateManager.js    Move/push counters + progress/audio/session in localStorage.
+
+  input/
+    InputHandler.js    Keyboard/mouse/touch → gameplay callbacks (key map below).
 
   rendering/           Everything Three.js.
     IsometricCamera.js PerspectiveCamera driven at an iso angle; rotate/tilt/zoom,
@@ -90,12 +101,16 @@ src/
                        wall occlusion fade, target pulse.
     PlayerRenderer.js  The ghost: bob, facing direction, win celebration.
     TileFactory.js / PixelTextures.js   Mesh + procedural pixel-texture creation.
+    SceneLighting.js   Ambient light + shadow sun that follows the camera.
+    PixelPostProcess.js  EffectComposer + RenderPixelatedPass (pixel size, resize).
     Minimap.js, CompassOverlay.js, Zoom/Tilt/Pixel/SliderIndicator.js   HUD-adjacent
                        overlays and a second viewport render.
 
   scenes/              SceneManager + MenuScene, LevelSelectScene, GameScene.
                        GameScene is the heart of gameplay — it owns the Board, camera,
                        renderers, HUD, pause/complete UI, and the move/undo/win flow.
+                       A move is a MoveCommand: it keeps a BoardMemento, so undo
+                       restores the board; CommandHistory is the caretaker.
   ui/                  HUD, PauseMenu, LevelCompleteUI, PixelButton (DOM overlay UI).
   audio/               AudioManager + MusicEngine + SFXEngine. Fully procedural Web
                        Audio (oscillators) — no audio files are fetched. AudioContext
@@ -151,10 +166,14 @@ Arrows = move · `Q`/`E` (or Space) = rotate camera · `+`/`-` = zoom · `P` = t
 
 ## Conventions
 
-- Keep `core/` free of Three.js. Rendering talks to the board through plain data; the
+- Keep `core/` free of Three.js and of the DOM (`window`, `document`): DOM input lives
+  in `src/input/`. Rendering talks to the board through plain data; the
   board never imports from `rendering/`. Preserve that boundary — `core-boundary.test.js`
   enforces it. A pattern used by `core/` must live in a Three.js-free module (see
   `src/patterns/level-builder.js`, re-exported by `creational.js`).
+- `src/patterns/` is the pattern catalog. Only instantiate a pattern in
+  `app/createGame.js` (or a scene) when the game really uses it — no showcase-only
+  objects in the running game.
 - New Three.js addon import? Add its SRI hash (and its own relative imports') to the
   `integrity` block of the import map in `index.html`.
 - Every UI string goes in `src/i18n.js` in **both** `en` and `ja`.

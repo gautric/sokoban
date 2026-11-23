@@ -74,6 +74,8 @@ export class ThreeJSRenderAPI extends RenderAPI {
 
 export class GameRenderer {
   constructor(renderAPI) { this.api = renderAPI; }
+  /** The concrete renderer, for scenes that drive post-processing themselves. */
+  get target() { return this.api.renderer; }
   setAPI(api) { this.api = api; }
   beginFrame() { this.api.clear(); }
   draw(scene, camera) { this.api.renderScene(scene, camera); }
@@ -150,18 +152,18 @@ export class LoggingAudioDecorator {
 }
 
 // ─── 10. FACADE — GameFacade ───────────────────────────────────────────────
-// Single entry point that hides the complexity of initializing renderer,
-// audio, levels, scenes, input, and the game loop.
+// Single entry point for main.js: load the levels, open the menu, run the
+// game loop (UPDATE METHOD: each scene updates itself) and handle resize.
+// `renderer` is the BRIDGE abstraction (GameRenderer); scenes draw through
+// `renderer.target`, the real WebGLRenderer. `raf` and `now` are injectable for tests.
 
 export class GameFacade {
-  constructor({ container, stateManager, audioManager, levelManager, inputHandler, sceneManager, renderer }) {
-    this.container = container;
-    this.state = stateManager;
-    this.audio = audioManager;
-    this.levels = levelManager;
-    this.input = inputHandler;
-    this.scenes = sceneManager;
+  constructor({ levels, scenes, renderer, raf = (cb) => requestAnimationFrame(cb), now = () => performance.now() }) {
+    this.levels = levels;
+    this.scenes = scenes;
     this.renderer = renderer;
+    this._raf = raf;
+    this._now = now;
     this._running = false;
     this._lastTime = 0;
   }
@@ -174,21 +176,30 @@ export class GameFacade {
   start() {
     if (this._running) return;
     this._running = true;
-    this._lastTime = performance.now();
-    this._loop();
+    this._lastTime = this._now();
+    this._raf(() => this._loop());
   }
 
   stop() { this._running = false; }
 
+  /** One frame: variable dt on purpose (camera and box lerps use it). */
+  tick(dt) {
+    this.scenes.update(dt);
+    this.renderer.beginFrame();
+    this.scenes.render(this.renderer.target);
+  }
+
+  resize(w, h) {
+    this.renderer.resize(w, h);
+    this.scenes.resize(w, h);
+  }
+
   _loop() {
     if (!this._running) return;
-    const now = performance.now();
-    const dt = now - this._lastTime;
+    const now = this._now();
+    this.tick(now - this._lastTime);
     this._lastTime = now;
-    this.scenes.update(dt);
-    this.renderer.clear();
-    this.scenes.render(this.renderer);
-    requestAnimationFrame(() => this._loop());
+    this._raf(() => this._loop());
   }
 }
 

@@ -202,7 +202,8 @@ export class PlayerRenderer {
     this._transitionTo('celebrating');
   }
 
-  _stopCelebration() {
+  stopCelebration() {
+    if (!this._celebrating) return;
     this._celebrating = false;
     this._transitionTo('idle');
   }
@@ -285,7 +286,7 @@ export class PlayerRenderer {
 
   dispose() {
     window.removeEventListener('mousemove', this._onMouseMove);
-    if (this._celebrating) this._stopCelebration();
+    this.stopCelebration();
     if (this._neonLight) { this.scene.remove(this._neonLight); this._neonLight = null; }
     if (this.sprite) {
       this.scene.remove(this.sprite);

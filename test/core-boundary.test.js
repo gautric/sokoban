@@ -45,3 +45,11 @@ for (const name of readdirSync(coreDir).filter(n => n.endsWith('.js'))) {
     assert.equal(chain, null, chain ? `forbidden import chain: ${chain.join(' -> ')}` : '');
   });
 }
+
+// CLAUDE.md rule: core/ has no `document` and no `window` (DOM input lives in src/input/).
+for (const name of readdirSync(coreDir).filter(n => n.endsWith('.js'))) {
+  test(`src/core/${name} does not touch the DOM`, () => {
+    const text = readFileSync(join(coreDir, name), 'utf8');
+    assert.doesNotMatch(text, /\b(window|document)\./);
+  });
+}

@@ -1,27 +1,34 @@
-import { MementoCaretaker } from '../patterns/behavioral.js';
+import { MoveResult } from '../config.js';
 
 const PROGRESS_KEY = 'kiro-sokoban-progress';
 const AUDIO_KEY = 'kiro-sokoban-audio';
 const SESSION_KEY = 'kiro-sokoban-session';
 
 /**
- * StateManager — uses MementoCaretaker to store board snapshots.
- * The Board creates mementos; StateManager (caretaker) stores them.
+ * StateManager — move/push counters for the current level, and persistence
+ * (progress, audio settings, session) in localStorage.
+ * Undo snapshots live in CommandHistory (see MoveCommand), not here.
  */
 export class StateManager {
   constructor() {
-    this.caretaker = new MementoCaretaker();
     this.moves = 0;
     this.pushes = 0;
   }
 
-  // ── MEMENTO CARETAKER delegation ──
-  pushUndo(memento) { this.caretaker.save(memento); }
-  popUndo() { return this.caretaker.restore(); }
-  clearUndo() { this.caretaker.clear(); this.moves = 0; this.pushes = 0; }
+  // ── Counters: driven by the MoveResult of each move / undone move ──
+  recordMove(result) {
+    if (result === MoveResult.BLOCKED) return;
+    this.moves++;
+    if (result === MoveResult.PUSHED) this.pushes++;
+  }
 
-  incrementMoves() { this.moves++; }
-  incrementPushes() { this.pushes++; }
+  undoMove(result) {
+    if (result === MoveResult.BLOCKED) return;
+    this.moves = Math.max(0, this.moves - 1);
+    if (result === MoveResult.PUSHED) this.pushes = Math.max(0, this.pushes - 1);
+  }
+
+  resetCounters() { this.moves = 0; this.pushes = 0; }
   getMoveCount() { return this.moves; }
   getPushCount() { return this.pushes; }
 
