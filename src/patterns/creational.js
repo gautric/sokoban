@@ -9,7 +9,7 @@
  */
 
 import * as THREE from 'three';
-import { TileType, EntityType, TILE_SIZE, WALL_HEIGHT, BOX_SIZE } from '../config.js';
+import { TILE_SIZE, WALL_HEIGHT, BOX_SIZE } from '../config.js';
 import { PixelTextures } from '../rendering/PixelTextures.js';
 
 // ─── 1. SINGLETON — GameRegistry ────────────────────────────────────────────
@@ -113,54 +113,10 @@ export class PixelThemeFactory extends ThemeFactory {
 }
 
 // ─── 4. BUILDER — LevelBuilder ──────────────────────────────────────────────
-// Constructs a level object step-by-step. Useful for procedural generation
-// or editor tools where you add tiles/entities incrementally.
-
-export class LevelBuilder {
-  constructor() { this.reset(); }
-
-  reset() {
-    this._level = { width: 0, height: 0, tiles: [], entities: [], playerStart: null, targetPositions: [], title: '' };
-    return this;
-  }
-
-  setSize(w, h) {
-    this._level.width = w;
-    this._level.height = h;
-    this._level.tiles = Array.from({ length: h }, () => new Array(w).fill(TileType.EMPTY));
-    this._level.entities = Array.from({ length: h }, () => new Array(w).fill(EntityType.NONE));
-    return this;
-  }
-
-  setTitle(title) { this._level.title = title; return this; }
-
-  setTile(x, y, type) {
-    if (x >= 0 && x < this._level.width && y >= 0 && y < this._level.height) {
-      this._level.tiles[y][x] = type;
-      if (type === TileType.TARGET) this._level.targetPositions.push({ x, y });
-    }
-    return this;
-  }
-
-  placePlayer(x, y) {
-    this._level.playerStart = { x, y };
-    this._level.entities[y][x] = EntityType.PLAYER;
-    if (this._level.tiles[y][x] === TileType.EMPTY) this._level.tiles[y][x] = TileType.FLOOR;
-    return this;
-  }
-
-  placeBox(x, y) {
-    this._level.entities[y][x] = EntityType.BOX;
-    if (this._level.tiles[y][x] === TileType.EMPTY) this._level.tiles[y][x] = TileType.FLOOR;
-    return this;
-  }
-
-  build() {
-    const result = { ...this._level, targetPositions: [...this._level.targetPositions] };
-    this.reset();
-    return result;
-  }
-}
+// Lives in ./level-builder.js (pure, no Three.js) so src/core can import it
+// without pulling the rendering stack. Re-exported here to keep this module
+// the single entry point for the creational patterns.
+export { LevelBuilder } from './level-builder.js';
 
 // ─── 5. PROTOTYPE — EntityPrototype ─────────────────────────────────────────
 // Pre-build expensive Three.js meshes once, then clone them.

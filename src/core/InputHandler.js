@@ -1,5 +1,5 @@
 import { Direction, ROTATION_MAP } from '../config.js';
-import { buildInputChain, UIInputHandler, GameInputHandler } from '../patterns/behavioral.js';
+import { buildInputChain } from '../patterns/behavioral.js';
 import { TouchInputAdapter } from '../patterns/structural.js';
 
 /**

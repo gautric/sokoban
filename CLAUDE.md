@@ -9,41 +9,56 @@ box-pushing) puzzle game that runs in the browser. The player is a ghost (Kiro) 
 pushes boxes onto target tiles. The board is rendered in Three.js with an isometric
 camera and a pixel-art post-processing pass; UI is plain HTML/CSS overlaid on the canvas.
 
-- **No build step, no bundler, no `package.json`, no `node_modules`.** Pure vanilla
-  JavaScript ES modules loaded directly by the browser.
+- **No build step, no bundler, no dependencies, no `node_modules`.** Pure vanilla
+  JavaScript ES modules loaded directly by the browser. The root `package.json` only
+  sets `"type": "module"` so Node treats `src/` and `test/` as ES modules — never add
+  `dependencies` to it.
 - **Three.js r0.160.0** is pulled from a CDN via an `importmap` in `index.html`
   (`https://unpkg.com/three@0.160.0/...`). There is no local copy. Import it as
   `import * as THREE from 'three'` and addons as `'three/addons/...'`.
 - Bilingual: English / Japanese, toggled at runtime (see `src/i18n.js`). The HTML ships
   Japanese as the default; strings are swapped by `data-i18n` attributes.
 
-> The root `README.md` is stale (it describes "Flappy Kiro", the baseline on another
-> branch). This `CLAUDE.md` is the authoritative description of the `sokobanv2` game.
-
 ## Running and checking
 
 ES modules and `fetch()` of the `.sok` level files **do not work over `file://`** — you
-must serve over HTTP. Use the Makefile:
+must serve over HTTP. Use the Makefile (needs Node.js ≥ 18.19):
 
 ```bash
 make run      # open Firefox on the game + start a server on :8080 (the one you want)
 make serve    # just serve current dir at http://localhost:8080 (PORT=xxxx to change)
 make stop     # kill whatever is listening on the serve port
-make check    # all static checks: JS syntax + levels present + entrypoints present
+make check    # node --check on src/ + levels + entrypoints + unit tests (offline)
+make test     # unit tests only (Node built-in runner, no dependencies)
+make lint     # ESLint 9 via npx, config in eslint.config.js (needs network once)
+make par      # recompute OPTIMAL_MOVES after editing levels/*.sok
 make clean    # remove .DS_Store and __pycache__
 ```
 
-`make check` runs `node --check` on every module in `src/`, verifies `levels/*.sok` are
-non-empty, and verifies `index.html`, `src/main.js`, `src/config.js` exist. Run it after
-editing JS — it's the only automated safety net.
+Run `make check` and `make lint` after every JS change; CI (`.github/workflows/pages.yml`)
+runs both before deploying. Unit tests live in `test/*.test.js` and cover:
 
-**There is no unit/integration test framework.** This is a browser game verified by hand.
-Manual test procedures live in `aidlc-docs/construction/build-and-test/`. After a change
-that affects gameplay or rendering, actually load the game and play a level.
+| Test file | Guards |
+|---|---|
+| `board`, `undo`, `scoring` | Sokoban rules, Memento undo, star rating |
+| `state-manager` | localStorage defaults, bad JSON, best scores, session |
+| `levels` | every `.sok` puzzle parses, walls closed, **solvable**, par table size |
+| `level-parser`, `visitor` | `.sok` grammar, parse → export round trip |
+| `i18n` | EN/JA key parity, every `data-i18n` / `t('key')` exists |
+| `log`, `no-cheat` | log mode output; no cheat code, `window.__*` hook or `DEBUG` flag in `src/` |
+| `importmap` | Three.js pinned, every imported CDN module has an SRI hash |
+| `core-boundary` | `src/core/` never reaches `three` or `src/rendering/` |
 
-Add `?debug` to the URL (`http://localhost:8080/?debug`) to enable `DEBUG`: verbose audio
-logging, and console hooks `window.__cheat("win")`, `__cheat("skip 3")`, `__services`,
-`__registry`, `__bytecode`.
+`test/support/solver.js` is a small Sokoban solver used by the tests and `make par`.
+Rendering and game feel are still verified by hand (procedures in
+`aidlc-docs/construction/build-and-test/`): after a gameplay or rendering change, load
+the game and play a level.
+
+Add `?log` to the URL (`http://localhost:8080/?log`) for **log mode**: `LOG` in
+`config.js` turns on `src/log.js`, which prints game events to the console
+(`[scene] menu -> game 0`, `[move] UP PUSHED (1,3)`, `[audio] toggleMute`, …). It only
+logs: there are no cheats and no `window.__*` hooks — `test/no-cheat.test.js` fails if
+one comes back.
 
 ## Architecture
 
@@ -54,10 +69,11 @@ them together, starts scenes, and runs a `requestAnimationFrame` loop that calls
 ```
 src/
   config.js            Frozen shared constants + enums (TileType, EntityType,
-                       Direction, MoveResult, DIR_VECTORS). DEBUG flag. Tunables for
+                       Direction, MoveResult, DIR_VECTORS). LOG flag (?log). Tunables for
                        camera tilt/zoom, lerp durations, particle params, OPTIMAL_MOVES.
   main.js              Bootstrap + game loop. Instantiates and wires all subsystems.
   i18n.js              EN/JA translations, lang toggle (key J), data-i18n DOM updates.
+  log.js               Log mode (?log): scoped console logger, silent otherwise.
 
   core/                Pure game logic — NO Three.js in here.
     Board.js           Grid model. tryMove() is the Sokoban rules engine; isComplete()
@@ -121,6 +137,11 @@ Standard Sokoban text format, parsed by `LevelParser.parseSOK`. Header lines
 A level is rejected if it has no player, no boxes, or box count ≠ target count. The two
 packs are interleaved into one list at load time in `LevelManager.loadPacks()`.
 
+The packs hold the **original** Microban levels 1–22 and Microban II levels 1–18
+(40 levels). `OPTIMAL_MOVES` in `config.js` holds the true minimum move count of each
+level in that interleaved order. When you add, remove or edit a level: run `make test`
+(it proves every level is solvable) then `make par` and paste the new table.
+
 ## Controls (InputHandler)
 
 Arrows = move · `Q`/`E` (or Space) = rotate camera · `+`/`-` = zoom · `P` = tilt ·
@@ -131,7 +152,13 @@ Arrows = move · `Q`/`E` (or Space) = rotate camera · `+`/`-` = zoom · `P` = t
 ## Conventions
 
 - Keep `core/` free of Three.js. Rendering talks to the board through plain data; the
-  board never imports from `rendering/`. Preserve that boundary.
+  board never imports from `rendering/`. Preserve that boundary — `core-boundary.test.js`
+  enforces it. A pattern used by `core/` must live in a Three.js-free module (see
+  `src/patterns/level-builder.js`, re-exported by `creational.js`).
+- New Three.js addon import? Add its SRI hash (and its own relative imports') to the
+  `integrity` block of the import map in `index.html`.
+- Every UI string goes in `src/i18n.js` in **both** `en` and `ja`.
+- No `innerHTML` with dynamic text; build DOM with `textContent` / `createElement`.
 - Game constants belong in `config.js` as frozen exports — don't scatter magic numbers.
 - Match the existing style: ES module imports, 2-space indent, the `// ── NAME ──` banner
   comments that tag patterns. New modules should carry a header comment naming their role.
@@ -142,13 +169,15 @@ Arrows = move · `Q`/`E` (or Space) = rotate camera · `+`/`-` = zoom · `P` = t
 
 ## Git workflow (summary — full rules in `.kiro/steering/git-flow.md`)
 
-- Active branch is **`sokobanv2`**. Never commit to `main`, `sokoban`, or `flappybird`
-  unless the user names one. Verify with `git status -sb` first.
-- History is strictly linear — rebase, never merge commits. No remote is configured.
+- Remote is `origin` = `github.com/gautric/sokoban`; the only branch is **`main`**.
+  **A push to `main` deploys to production** (GitHub Pages, `sokoban.autric.net`).
+  Work on a `feat/…`, `fix/…`, `refactor/…`, `docs/…` or `test/…` branch and open a
+  pull request; never push to `main` directly. Verify with `git status -sb` first.
+- History is strictly linear — rebase, never merge commits.
 - **Commit only when the user explicitly asks.** Stage named files (`git add path`);
   never `git add -A`/`.`. One logical change per commit. Keep hooks on (no `--no-verify`).
 - Conventional Commits with a scope: `feat(rendering): …`. Reuse existing scopes:
-  `rendering, ui, input, audio, config, assets, i18n, typography, kiro, levels`.
+  `rendering, ui, input, audio, config, assets, i18n, typography, kiro, levels, seo, ci, patterns`.
 - Never commit `.venv/`, `static/`, `.DS_Store`, or anything in `.gitignore`.
 - When you create a commit or tag, append a line to `aidlc-docs/audit.md`.
 

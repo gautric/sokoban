@@ -6,11 +6,10 @@
  * Object.freeze() ensures immutability (true intrinsic state).
  */
 
-// Guarded so this module can also be imported outside the browser (e.g. the
-// Node test runner), where `window` does not exist. In the browser the value
-// is identical to before.
-export const DEBUG = typeof window !== 'undefined'
-  && new URLSearchParams(window.location.search).has('debug');
+// ── LOG MODE: add ?log to the URL to log game events to the console. It only
+//    logs: no cheats, no console hooks. Guarded so Node (tests) can import this. ──
+export const LOG = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).has('log');
 
 // ── FLYWEIGHT: frozen shared game constants ──
 export const TILE_SIZE = 1;
@@ -63,9 +62,11 @@ export const ROTATION_MAP = Object.freeze([
 ]);
 
 // ── FLYWEIGHT: frozen optimal moves array ──
+// Minimum moves per level (interleaved order of LevelManager.loadPacks()),
+// computed by a move-optimal solver. Regenerate after editing levels: `make par`.
 export const OPTIMAL_MOVES = Object.freeze([
-  15,20,25,18,22,30,28,35,32,40,
-  38,42,45,50,48,55,52,60,58,65,
-  62,68,70,75,72,80,78,85,82,90,
-  88,95,92,100,98,105,102,110,108,115
+  33,44,16,27,41,46,23,61,25,61,
+  107,55,26,47,97,40,30,32,89,23,
+  78,39,49,87,52,75,51,29,37,40,
+  100,80,25,40,71,71,41,50,17,47
 ]);

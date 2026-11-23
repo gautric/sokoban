@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Board } from '../core/Board.js';
-import { MoveResult, TileType, DIR_VECTORS, TILE_SIZE, PIXEL_SIZE_DEFAULT, PIXEL_SIZE_MIN, PIXEL_SIZE_MAX, PIXEL_SIZE_STEP, OPTIMAL_MOVES, MOVE_SETTLE_DURATION, WIN_SCREEN_DELAY } from '../config.js';
+import { MoveResult, TileType, DIR_VECTORS, PIXEL_SIZE_DEFAULT, PIXEL_SIZE_MIN, PIXEL_SIZE_MAX, PIXEL_SIZE_STEP, OPTIMAL_MOVES, MOVE_SETTLE_DURATION, WIN_SCREEN_DELAY } from '../config.js';
 import { IsometricCamera } from '../rendering/IsometricCamera.js';
 import { BoardRenderer } from '../rendering/BoardRenderer.js';
 import { PlayerRenderer } from '../rendering/PlayerRenderer.js';

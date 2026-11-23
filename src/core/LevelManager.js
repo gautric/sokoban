@@ -1,7 +1,7 @@
 import { LevelParser } from './LevelParser.js';
 import { OPTIMAL_MOVES } from '../config.js';
 import { LevelIterator, ScoringContext, MoveBasedScoring } from '../patterns/behavioral.js';
-import { LevelBuilder } from '../patterns/creational.js';
+import { LevelBuilder } from '../patterns/level-builder.js';
 
 /**
  * LevelManager — ITERATOR + STRATEGY + BUILDER patterns.

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TILE_SIZE, WALL_HEIGHT, BOX_SIZE } from '../config.js';
+import { TILE_SIZE } from '../config.js';
 import { PixelTextures } from './PixelTextures.js';
 import { EntityPrototype, WallMeshCreator, FloorMeshCreator, BoxMeshCreator } from '../patterns/creational.js';
 

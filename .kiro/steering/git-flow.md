@@ -10,32 +10,24 @@ flow with conventional commits and no merge commits.
 
 ## Repository facts
 
-- No remote is configured. Everything is local; never invent or add a remote.
+- Remote: `origin` = `https://github.com/gautric/sokoban.git`. Do not add other remotes.
 - History is strictly linear: `git log --merges` is empty. Keep it that way.
 - Commit subjects follow Conventional Commits with a scope (`feat(rendering): ...`).
-- Milestones are marked with lightweight tags (example: `gofdesignpattern`).
+- Milestones are marked with lightweight tags.
 
 ## Branch model
 
-Long-lived branches, one per game or major variant:
-
-| Branch       | Role                                                        |
-|--------------|-------------------------------------------------------------|
-| `main`       | Baseline only. Do not commit application code here.         |
-| `sokobanv2`  | Active development branch for the current Sokoban rewrite.  |
-| `sokoban`    | Archived v1. Read-only.                                     |
-| `flappybird` | Archived separate game. Read-only.                          |
+| Branch           | Role                                                              |
+|------------------|-------------------------------------------------------------------|
+| `main`           | The game. **Every push deploys to GitHub Pages** (`sokoban.autric.net`) via `.github/workflows/pages.yml`, gated on `make check` + `make lint`. |
+| `feat/…`, `fix/…`, `refactor/…`, `docs/…`, `test/…` | Short-lived work branches from `main`. |
 
 Rules:
 
-- Default working branch is the currently checked-out variant branch (`sokobanv2` today).
-  Verify with `git status -sb` before any write operation.
-- Never commit to `main`, `sokoban`, or `flappybird` unless the user explicitly names one.
-- Short-lived work branches are allowed for risky or multi-step changes. Name them
-  `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, or `docs/<slug>`, branched from the
-  active variant branch.
-- Integrate a work branch with `git rebase` onto the variant branch, then fast-forward.
-  Never `git merge --no-ff`; never create merge commits.
+- Verify the current branch with `git status -sb` before any write operation.
+- Never push to `main` directly. Push a work branch (`git push origin <branch>`) and
+  open a pull request; it lands on `main` by rebase / fast-forward once reviewed.
+- Never `git merge --no-ff`; never create merge commits.
 
 ## Commit rules
 
@@ -72,7 +64,7 @@ chore(.gitignore): exclude static directory from version control
 
 ## Tags
 
-- Tag meaningful milestones on the active variant branch with a short lowercase slug,
+- Tag meaningful milestones on `main` with a short lowercase slug,
   no `v` prefix unless the user asks for a version number.
 - Create tags only when the user asks. Never delete or move an existing tag.
 
@@ -100,13 +92,13 @@ git add <files>
 git commit -m "feat(<scope>): <summary>"
 ```
 
-Fold a work branch back in:
+Ship a work branch (main deploys on push, so it goes through a pull request):
 
 ```bash
-git rebase sokobanv2                 # from the work branch
-git switch sokobanv2
-git merge --ff-only feat/<slug>
-git branch -d feat/<slug>            # -d only, never -D
+git fetch origin && git rebase origin/main   # from the work branch
+make check && make lint
+git push origin feat/<slug>
+gh pr create --base main --head feat/<slug>
 ```
 
 ## AI-DLC interaction

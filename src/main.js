@@ -14,10 +14,13 @@ import { GameRegistry, PixelThemeFactory, EntityPrototype } from './patterns/cre
 // ── GoF Structural ──
 import { GameFacade, TextureCache, LazyAudioProxy, LoggingAudioDecorator, ThreeJSRenderAPI, GameRenderer, TouchInputAdapter } from './patterns/structural.js';
 // ── GoF Behavioral ──
-import { EventBus, GameStateMachine, ScoringContext, MoveBasedScoring, CommandHistory, GameMediator, MementoCaretaker, LevelIterator, CheatCodeInterpreter, buildInputChain } from './patterns/behavioral.js';
+import { EventBus, GameStateMachine, ScoringContext, MoveBasedScoring, CommandHistory, GameMediator, MementoCaretaker, LevelIterator, buildInputChain } from './patterns/behavioral.js';
 // ── Game Programming Patterns (Nystrom) ──
-import { GameLoop, DoubleBuffer, EventQueue, ServiceLocator, ObjectPool, DirtyFlag, SpatialGrid, ParticleSOA, BytecodeVM, OP } from './patterns/game-patterns.js';
-import { DEBUG } from './config.js';
+// GameLoop (fixed timestep) is exported by game-patterns.js for reference; the
+// loop below is a variable-dt requestAnimationFrame loop on purpose (lerps use dt).
+import { LOG, Direction, MoveResult } from './config.js';
+import { log, nameOf } from './log.js';
+import { DoubleBuffer, EventQueue, ServiceLocator, ObjectPool, DirtyFlag, SpatialGrid, ParticleSOA, BytecodeVM } from './patterns/game-patterns.js';
 
 async function init() {
   const container = document.getElementById('game-container');
@@ -41,8 +44,11 @@ async function init() {
 
   // ── 12. PROXY: LazyAudioProxy ──
   const audioProxy = new LazyAudioProxy(() => new AudioManager(stateManager));
-  // ── 9. DECORATOR: LoggingAudioDecorator ──
-  const audioManager = DEBUG ? new LoggingAudioDecorator(audioProxy) : audioProxy;
+  // ── 9. DECORATOR: LoggingAudioDecorator — in log mode (?log) it wraps the
+  //    proxy and reports every audio call to the console. ──
+  const audioManager = LOG
+    ? new LoggingAudioDecorator(audioProxy, (action) => log('audio', action))
+    : audioProxy;
 
   // ── 18. OBSERVER: EventBus ──
   const eventBus = new EventBus();
@@ -111,6 +117,10 @@ async function init() {
   });
 
   // ── Register all in Singleton + Service Locator ──
+  // SHOWCASE-ONLY instances: themeFactory, entityPrototypes, boardDirtyFlag,
+  // particlePool, spatialGrid, inputBuffer, bytecodeVM (created and registered, not
+  // read by the game) and particleSOA (ticked each frame, nothing rendered). They
+  // exist to demonstrate the pattern. Wire one into gameplay before relying on it.
   const services = {
     renderer, gameRenderer, state: stateManager, audio: audioManager,
     levels: levelManager, input: inputHandler, eventBus, stateMachine,
@@ -148,14 +158,6 @@ async function init() {
   const touchAdapter = new TouchInputAdapter({ onMove: (dir) => gameScene._handleMove?.(dir) });
   touchAdapter.attach(container);
 
-  // ── 23. INTERPRETER: CheatCodeInterpreter ──
-  const cheatInterpreter = new CheatCodeInterpreter({
-    skipLevels: (n) => { const next = gameScene.currentLevelId + n; if (next < levelManager.getLevelCount()) gameScene.activate(next); },
-    instantWin: () => gameScene._onWin?.(),
-    undo: () => gameScene._handleUndo?.(),
-    setMoves: (n) => { stateManager.moves = n; },
-  });
-
   // ── STATE MACHINE wiring ──
   stateMachine.on('state:paused', () => eventBus.emit('game:paused'));
   stateMachine.on('state:playing', () => eventBus.emit('game:resumed'));
@@ -176,6 +178,7 @@ async function init() {
 
   // ── 10. FACADE: GameFacade ──
   const facade = new GameFacade({ container, stateManager, audioManager, levelManager, inputHandler, sceneManager, renderer });
+  registry.register('facade', facade);
   sceneManager.switchTo('menu');
 
   window.addEventListener('keydown', (e) => {
@@ -217,16 +220,15 @@ async function init() {
   //    CDN-failure overlay is cleared / never shown. ──
   window.__bootOK?.();
 
-  // ── Debug console ──
-  if (DEBUG) {
-    window.__registry = registry;
-    window.__services = ServiceLocator;
-    window.__cheat = (cmd) => cheatInterpreter.interpret(cmd);
-    window.__bytecode = (code) => bytecodeVM.execute(code);
-    window.__OP = OP;
-    console.log('[Patterns] 23 GoF + 13 Game Programming Patterns wired.');
-    console.log('  __cheat("win")  __cheat("skip 3")  __bytecode([OP.LITERAL, 42, OP.HALT])');
-    console.log('  __services.get("audio")  __registry.get("eventQueue")');
+  // ── LOG MODE (?log): print game events. Read-only — it changes nothing. ──
+  if (LOG) {
+    log('boot', `${levelManager.getLevelCount()} levels loaded`);
+    sceneManager.onSceneChange(({ from, to, args }) => log('scene', `${from} -> ${to}`, ...args));
+    gameScene.events.on('level:loaded', ({ levelId }) => log('level', 'loaded', levelId));
+    gameScene.events.on('player:moved', ({ direction, result, pos }) => log('move', nameOf(Direction, direction), nameOf(MoveResult, result), `(${pos.x},${pos.y})`));
+    for (const e of ['game:paused', 'game:resumed', 'game:won']) {
+      gameScene.events.on(e, () => log('game', e.slice(5)));
+    }
   }
 }
 
